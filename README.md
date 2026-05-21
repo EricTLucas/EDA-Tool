@@ -1,0 +1,2 @@
+# Exploratory-Data-Analysis-Automation-Tool
+This project is a flexible EDA designed to automate early stages of data exploration. It takes in a dataset (CSV, Excel, Scikit-Learn Dataset, etc.) and returns relevant information and statistics. Intended to support early stages of Machine Learning. 
