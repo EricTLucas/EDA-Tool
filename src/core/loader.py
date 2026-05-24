@@ -47,10 +47,29 @@ def load_dataset(source) -> pd.DataFrame:
 def load_from_upload(files: list) -> pd.DataFrame:
     """
     Takes in a list of uploaded files, reads them into DataFrames, and concatenates them.
+    Expects each item to be an upload-like object with a `filename` attribute and a `file`-like
+    buffer (e.g. FastAPI/Flask UploadFile). Returns an empty DataFrame for an empty input list.
     """
+    if not isinstance(files, list):
+        raise TypeError("files must be a list of uploaded file objects")
 
+    if len(files) == 0:
+        return pd.DataFrame()
 
+    dfs = []
+    for f in files:
+        if not hasattr(f, "filename"):
+            raise TypeError("All items in files must have a 'filename' attribute (uploaded file objects)")
 
+        try:
+            df = convert_to_dataframe(f)
+            dfs.append(df)
+        except Exception as exc:
+            name = getattr(f, "filename", "<unknown>")
+            raise ValueError(f"Failed to load uploaded file '{name}': {exc}") from exc
+
+    return pd.concat(dfs, ignore_index=True, sort=False)
+    
 def load_from_path_file(path: Path) -> pd.DataFrame:
     """
     Load a single file from a given path into a DataFrame. Converts if necessary.
