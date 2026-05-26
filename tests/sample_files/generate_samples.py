@@ -11,9 +11,9 @@ def main():
     base = Path(__file__).parent
 
     df = pd.DataFrame({
-        "Column_1": [1, 2, -3, 5, 10],
-        "Column_2": ["x", "y", "z", "a", "i"],
-        "Column_3": [0.1, 0.8, 0.3, 0.9, 0.2]
+        "a": [1, 2, 3],
+        "b": ["x", "y", "z"],
+        "c": [0.1, 0.2, 0.3]
     })
 
     # CSV
