@@ -8,8 +8,3 @@ def analyze(path_or_object, output_dir=r"reports"):
     visualize_dataset(df, profile, output_dir)
     return df, profile
 
-def main():
-    _, _ = analyze(r"tests\sample_files\iris.csv")
-
-if __name__ == "__main__":
-    main()
