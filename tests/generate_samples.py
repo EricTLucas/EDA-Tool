@@ -8,7 +8,8 @@ from pathlib import Path
 import json
 
 def main():
-    base = Path(__file__).parent
+    base = Path(__file__).parent / "sample_files"
+    base.mkdir(parents=True, exist_ok=True)
 
     df = pd.DataFrame({
         "a": [1, 2, 3],

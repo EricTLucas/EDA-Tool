@@ -6,9 +6,9 @@ def profile_dataset(df: pd.DataFrame) -> dict:
 
     # --- Dataset-level summary ---
     profile["shape"] = df.shape
-    profile["memory_usage"] = df.memory_usage(deep=True).sum()
-    profile["num_duplicates"] = df.duplicated().sum()
-    profile["num_missing"] = df.isna().sum().sum()
+    profile["memory_usage"] = int(df.memory_usage(deep=True).sum())
+    profile["num_duplicates"] = int(df.duplicated().sum())
+    profile["num_missing"] = int(df.isna().sum().sum())
     profile["missing_by_column"] = df.isna().sum().to_dict()
 
     # --- Column-level summary ---
@@ -18,9 +18,9 @@ def profile_dataset(df: pd.DataFrame) -> dict:
         col_profile = {}
 
         col_profile["dtype"] = str(series.dtype)
-        col_profile["num_missing"] = series.isna().sum()
+        col_profile["num_missing"] = int(series.isna().sum())
         col_profile["pct_missing"] = float(series.isna().mean())
-        col_profile["num_unique"] = series.nunique(dropna=True)
+        col_profile["num_unique"] = int(series.nunique(dropna=True))
         col_profile["sample_values"] = series.dropna().unique()[:5].tolist()
 
         # Numeric stats
