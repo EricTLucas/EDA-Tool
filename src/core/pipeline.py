@@ -1,10 +1,11 @@
 from loader import load_dataset
 from profiler import profile_dataset
 from visualizer import visualize_dataset
+from html_report_generator import generate_html_report
 
 def analyze(path_or_object, output_dir=r"reports"):
     df = load_dataset(path_or_object)
     profile = profile_dataset(df)
     visualize_dataset(df, profile, output_dir)
+    report_path = generate_html_report(df, profile, output_dir)
     return df, profile
-

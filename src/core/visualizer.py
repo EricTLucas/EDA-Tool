@@ -11,10 +11,14 @@ def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = 
     If output_dir is provided, save plots instead of showing them.
     """
     # Dataset-level plots
-    describe_dataset(df, profile, output_dir)
-    sample_entry(df, profile, output_dir)
-    plot_missing_values_from_profile(profile, output_dir)
-    column_summary(df, profile, output_dir)
+    figs = {
+        "Summary": describe_dataset(df, profile, output_dir),
+        "Column Summary": column_summary(df, profile, output_dir),
+        "Sample": sample_entry(df, profile, output_dir),
+        "Missing Values": plot_missing_values_from_profile(profile, output_dir),
+    }
+
+    #compile_report(df, profile, figs, output_dir)
 
     # Column-level plots driven by profile
     for col in df.columns:
