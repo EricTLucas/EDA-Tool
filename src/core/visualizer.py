@@ -11,14 +11,12 @@ def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = 
     If output_dir is provided, save plots instead of showing them.
     """
     # Dataset-level plots
-    figs = {
-        "Summary": describe_dataset(df, profile, output_dir),
-        "Column Summary": column_summary(df, profile, output_dir),
-        "Sample": sample_entry(df, profile, output_dir),
-        "Missing Values": plot_missing_values_from_profile(profile, output_dir),
-    }
-
-    #compile_report(df, profile, figs, output_dir)
+    describe_dataset(df, profile, output_dir)
+    column_summary(df, profile, output_dir)
+    sample_entry(df, profile, output_dir)
+    
+    sig_columns = []
+    index_column = None
 
     # Column-level plots driven by profile
     for col in df.columns:
@@ -27,45 +25,60 @@ def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = 
 
         # Skip ID-like or constant columns based on profile
         if col_profile.get("cardinality") == "id":
+            if _is_numeric_dtype(col_profile.get("dtype", str(series.dtype))) and index_column == None:
+                df.index.name = col
+                index_column = col
             continue
         if col_profile.get("num_unique") == 1:
             continue
 
         dtype = col_profile.get("dtype", str(series.dtype))
+        
         cardinality = col_profile.get("cardinality")
 
         if _is_numeric_dtype(dtype):
             plot_numeric_distribution(series, col_profile, output_dir)
-            plot_boxplot(series, col_profile, output_dir)
+            #plot_boxplot(series, col_profile, output_dir) defunct
+            sig_columns.append([col, dtype])
 
         elif _is_categorical_dtype(dtype, cardinality):
             plot_categorical_distribution(series, col_profile, output_dir)
+            sig_columns.append([col, dtype])
 
         elif _is_datetime_dtype(dtype):
             plot_datetime_distribution(series, col_profile, output_dir)
+            sig_columns.append([col, dtype])
         # missing values by index / patterns
         # comparisons between numeric columns (scatter, correlation), categorical columns (mosaic), numeric vs categorical (boxplot, violin)
+    
+    numeric = ["int", "float", "number", "float64"]
+    
+    for i in range(len(sig_columns)-1):
+        for j in range(i+1, len(sig_columns)):
+            col, dtype = sig_columns[i]
+            
+            col2, dtype2 = sig_columns[j]
+    
+            if dtype in numeric and dtype2 in numeric:
+                plot_scatterplot(df[col], df[col2], output_dir)
+            elif (dtype == "str" and dtype2 in numeric) or (dtype2 == "str" and dtype in numeric):
+                if dtype == "str":
+                    plot_boxplot_by_category(df[col], df[col2], output_dir)
+                else:
+                    plot_boxplot_by_category(df[col2], df[col], output_dir)
+            elif dtype == "str" and dtype2 == "str":
+                plot_mosaic(df[col], df[col2], 
+                            profile["columns"].get(col, {}), profile["columns"].get(col2, {}), output_dir)
+    
+    if index_column is not None:
+        for col, dtype in sig_columns:
+            if dtype in numeric:
+                plot_scatterplot(df[index_column], df[col], output_dir)
+
+        if profile['num_missing'] > 0:
+            plot_missing_by_index(df, index_column, output_dir)
 
     return None
-
-
-def plot_missing_values_from_profile(profile: dict, output_dir=None):
-    """Bar chart of missing values per column using profile stats."""
-    missing = profile.get("missing_by_column", {})
-    if not missing:
-        return None
-    if all(v == 0 for v in missing.values()):
-        return None
-
-    s = pd.Series(missing)
-
-    fig, ax = plt.subplots(figsize=(10, 4))
-    s.plot(kind="bar", ax=ax, color="steelblue")
-    ax.set_title("Missing Values per Column")
-    ax.set_ylabel("Count")
-
-    _handle_output(fig, output_dir, "missing_values")
-    return fig
 
 def describe_dataset(df: pd.DataFrame, profile: dict, output_dir=None):
     """Simple text summary of dataset."""
@@ -77,7 +90,7 @@ def describe_dataset(df: pd.DataFrame, profile: dict, output_dir=None):
     ax.text(0.5, 0.5, text,
             ha='center', va='center', fontsize=12)
     ax.axis('off')
-    _handle_output(fig, output_dir, "dataset_info")
+    _handle_output(fig, output_dir, "Dataset_Info")
     return fig
 
 def sample_entry(df: pd.DataFrame, profile: dict, output_dir=None):
@@ -136,7 +149,7 @@ def sample_entry(df: pd.DataFrame, profile: dict, output_dir=None):
         wrap=True
     )
     ax.axis("off")
-    _handle_output(fig, output_dir, "sample_entry")
+    _handle_output(fig, output_dir, "Sample_Entry")
     return fig
 
 def column_summary(df: pd.DataFrame, profile: dict, output_dir=None):
@@ -197,7 +210,71 @@ def column_summary(df: pd.DataFrame, profile: dict, output_dir=None):
     )
     ax.axis("off")
 
-    _handle_output(fig, output_dir, "column_summary")
+    _handle_output(fig, output_dir, "Column_Summary")
+    return fig
+
+def plot_missing_by_index(df: pd.DataFrame, index_col: str, output_dir=None):
+    """
+    Plot missing vs non-missing values for each NON-index column across the index.
+    Each column gets a horizontal line (y = column index),
+    and each row gets a dot: blue = present, red = missing.
+    """
+
+    if df.empty:
+        return None
+
+    # Ensure index_col is the index
+    if df.index.name != index_col:
+        df = df.set_index(index_col)
+
+    # Skip the index column itself
+    columns = [c for c in df.columns if c != index_col]
+    n_cols = len(columns)
+
+    if n_cols == 0:
+        return None
+
+    fig, ax = plt.subplots(figsize=(12, max(4, n_cols * 0.3)))
+
+    for i, col in enumerate(columns):
+        col_data = df[col]
+
+        # Boolean mask: True = missing
+        missing_mask = col_data.isna()
+
+        # x = index values
+        x_vals = df[index_col].values
+
+        # y = constant line for this column
+        y_vals = np.full_like(x_vals, i, dtype=float)
+
+        # Present values
+        ax.scatter(
+            x_vals[~missing_mask],
+            y_vals[~missing_mask],
+            color="steelblue",
+            s=10,
+            label="Present" if i == 0 else None
+        )
+
+        # Missing values
+        ax.scatter(
+            x_vals[missing_mask],
+            y_vals[missing_mask],
+            color="red",
+            s=10,
+            label="Missing" if i == 0 else None
+        )
+
+    # Formatting
+    ax.set_yticks(range(n_cols))
+    ax.set_yticklabels(columns)
+    ax.set_xlabel(index_col)
+    ax.set_title("Missing Values by Index")
+
+    ax.legend(loc="upper right")
+
+    _handle_output(fig, output_dir, "Missing_By_Index")
     return fig
 
 
@@ -213,7 +290,7 @@ def plot_numeric_distribution(series: pd.Series, col_profile: dict, output_dir=N
 
     ax.set_title(f"Distribution of {series.name}")
 
-    _handle_output(fig, output_dir, f"{series.name}_distribution")
+    _handle_output(fig, output_dir, f"{series.name}_Distribution")
     return fig
 
 
@@ -223,7 +300,7 @@ def plot_boxplot(series: pd.Series, col_profile: dict, output_dir=None):
     sns.boxplot(x=series.dropna(), ax=ax, color="orange")
     ax.set_title(f"Boxplot of {series.name}")
 
-    _handle_output(fig, output_dir, f"{series.name}_boxplot")
+    _handle_output(fig, output_dir, f"{series.name}_Boxplot")
     return fig
 
 def plot_categorical_distribution(series: pd.Series, col_profile: dict, output_dir=None):
@@ -239,7 +316,7 @@ def plot_categorical_distribution(series: pd.Series, col_profile: dict, output_d
     ax.set_title(f"Top Categories in {series.name}")
     ax.set_ylabel("Frequency")
 
-    _handle_output(fig, output_dir, f"{series.name}_categories")
+    _handle_output(fig, output_dir, f"{series.name}_Categories")
     return fig
 
 def plot_datetime_distribution(series: pd.Series, col_profile: dict, output_dir=None):
@@ -255,11 +332,66 @@ def plot_datetime_distribution(series: pd.Series, col_profile: dict, output_dir=
     ax.set_title(f"Time Distribution of {series.name}")
     ax.set_ylabel("Count")
 
-    _handle_output(fig, output_dir, f"{series.name}_datetime")
+    _handle_output(fig, output_dir, f"{series.name}_Datetime")
     return fig
 
+def plot_scatterplot(series1: pd.Series, series2: pd.Series, output_dir=None):
+    """
+    Create a scatterplot between two numeric Series.
+    Both Series must be aligned by index.
+    """
+
+    # Drop rows where either value is missing
+    s1 = series1.dropna()
+    s2 = series2.dropna()
+    df = pd.concat([s1, s2], axis=1).dropna()
+
+    if df.empty:
+        return None
+
+    xname = series1.name or "x"
+    yname = series2.name or "y"
+
+    fig, ax = plt.subplots(figsize=(6, 4))
+    sns.scatterplot(x=df.iloc[:, 0], y=df.iloc[:, 1], ax=ax, color="steelblue")
+
+    ax.set_xlabel(xname)
+    ax.set_ylabel(yname)
+    ax.set_title(f"Scatterplot: {xname} vs {yname}")
+
+    _handle_output(fig, output_dir, f"Scatter_{xname}_vs_{yname}")
+    return fig
+
+def plot_boxplot_by_category(cat_series: pd.Series, num_series: pd.Series, output_dir=None):
+    """
+    Create a boxplot comparing a categorical Series to a numeric Series.
+    Both Series must be aligned by index.
+    """
+
+    # Drop rows where either value is missing
+    df = pd.concat([cat_series, num_series], axis=1).dropna()
+    if df.empty:
+        return None
+
+    cat_name = cat_series.name or "category"
+    num_name = num_series.name or "value"
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.boxplot(x=df.iloc[:, 0], y=df.iloc[:, 1], ax=ax, color="skyblue")
+
+    ax.set_xlabel(cat_name)
+    ax.set_ylabel(num_name)
+    ax.set_title(f"Boxplot: {num_name} by {cat_name}")
+
+    # Save or show
+    _handle_output(fig, output_dir, f"Boxplot_{num_name}_by_{cat_name}")
+    return fig
+
+def plot_mosaic(series1: pd.Series, series2: pd.Series, profile1: dict, profile2: dict, output_dir=None):
+    return 
+
 def _is_numeric_dtype(dtype_str: str) -> bool:
-    return any(k in dtype_str for k in ["int", "float", "number"])
+    return dtype_str in ["int", "float", "number", "float64"]
 
 
 def _is_datetime_dtype(dtype_str: str) -> bool:

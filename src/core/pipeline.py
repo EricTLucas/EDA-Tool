@@ -5,7 +5,11 @@ from html_report_generator import generate_html_report
 
 def analyze(path_or_object, output_dir=r"reports"):
     df = load_dataset(path_or_object)
+    print("Dataset Loading Complete")
     profile = profile_dataset(df)
+    print("Dataset Profiling Complete")
     visualize_dataset(df, profile, output_dir)
+    print("Dataset Visuals Complete")
     report_path = generate_html_report(df, profile, output_dir)
+    print("HTML Report Generated")
     return df, profile
