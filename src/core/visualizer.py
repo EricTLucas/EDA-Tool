@@ -1,3 +1,4 @@
+from matplotlib.figure import figaspect
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -38,7 +39,6 @@ def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = 
 
         if _is_numeric_dtype(dtype):
             plot_numeric_distribution(series, col_profile, output_dir)
-            #plot_boxplot(series, col_profile, output_dir) defunct
             sig_columns.append([col, dtype])
 
         elif _is_categorical_dtype(dtype, cardinality):
@@ -48,12 +48,13 @@ def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = 
         elif _is_datetime_dtype(dtype):
             plot_datetime_distribution(series, col_profile, output_dir)
             sig_columns.append([col, dtype])
-        # missing values by index / patterns
-        # comparisons between numeric columns (scatter, correlation), categorical columns (mosaic), numeric vs categorical (boxplot, violin)
-    
+        
     numeric = ["int", "float", "number", "float64"]
     
     for i in range(len(sig_columns)-1):
+        if sig_columns[i+1][1] == "str":
+            single_column_summary(df[sig_columns[i+1][0]], profile["columns"].get(sig_columns[i+1][0], {}), output_dir)
+
         for j in range(i+1, len(sig_columns)):
             col, dtype = sig_columns[i]
             
@@ -277,6 +278,17 @@ def plot_missing_by_index(df: pd.DataFrame, index_col: str, output_dir=None):
     _handle_output(fig, output_dir, "Missing_By_Index")
     return fig
 
+def single_column_summary(series: pd.Series, col_profile: dict, output_dir=None):
+    print(col_profile)
+    fig, ax = plt.subplots(figsize=(6, 1))
+    text = "Something\n"
+
+    ax.text(0.5, 0.5, text,
+            ha='center', va='center', fontsize=12)
+    ax.axis('off')
+
+    _handle_output(fig, output_dir, f"{series.name}_Summary")
+    return fig
 
 def plot_numeric_distribution(series: pd.Series, col_profile: dict, output_dir=None):
     """Histogram + KDE for numeric columns."""
@@ -294,6 +306,8 @@ def plot_numeric_distribution(series: pd.Series, col_profile: dict, output_dir=N
     return fig
 
 
+
+
 def plot_boxplot(series: pd.Series, col_profile: dict, output_dir=None):
     """Boxplot for numeric columns."""
     fig, ax = plt.subplots(figsize=(6, 2))
@@ -304,17 +318,24 @@ def plot_boxplot(series: pd.Series, col_profile: dict, output_dir=None):
     return fig
 
 def plot_categorical_distribution(series: pd.Series, col_profile: dict, output_dir=None):
-    """Bar chart of category frequencies."""
-    # Use cardinality info to cap number of categories
+    """Pie chart of category frequencies."""
+    
     cardinality = col_profile.get("cardinality")
     max_categories = 20 if cardinality != "high" else 50
 
     counts = series.value_counts(dropna=True).head(max_categories)
 
-    fig, ax = plt.subplots(figsize=(10, 4))
-    counts.plot(kind="bar", ax=ax, color="purple")
+    fig, ax = plt.subplots(figsize=(8, 8))
+
+    ax.pie(
+        counts.values,
+        labels=counts.index.astype(str),
+        autopct="%1.1f%%",
+        startangle=90,
+        counterclock=False
+    )
+
     ax.set_title(f"Top Categories in {series.name}")
-    ax.set_ylabel("Frequency")
 
     _handle_output(fig, output_dir, f"{series.name}_Categories")
     return fig
