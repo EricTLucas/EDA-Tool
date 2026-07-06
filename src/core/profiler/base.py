@@ -20,7 +20,6 @@ class SectionResult:
     """Container for the output of a profiling component."""
     name: str
     data: Dict[str, Any]
-    warnings: Optional[List[str]] = None
 
 
 # ---------------------------------------------------------------------------

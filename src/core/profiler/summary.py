@@ -13,6 +13,9 @@ class SummaryComponent(ProfilerComponent):
         summary["num_duplicates"] = int(df.duplicated().sum())
         summary["memory_usage"] = int(df.memory_usage(deep=True).sum())
         summary["num_missing_cells"] = int(df.isna().sum().sum())
+        summary["sample_values_first"] = df.head(10)
+        summary["sample_values_last"] = df.tail(10)
+
 
         return SectionResult(
             name=self.name,
