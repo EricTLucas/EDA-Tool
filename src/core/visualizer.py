@@ -1,11 +1,10 @@
-from matplotlib.figure import figaspect
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import seaborn as sns
 from wordcloud import WordCloud
 from pathlib import Path
+from matplotlib.colors import ListedColormap
 
 
 def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = None):
@@ -29,13 +28,15 @@ def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = 
     """
 
     figures = []
-    pairs = profile['interactions'].data['pairs']
-    figures.append(plotInteractions(df, profile, pairs, output_dir))
 
-    corr_table = profile['correlations'].data['correlations']
+    pairs = profile['interactions'].data['pairs']
+    sample = profile['interactions'].data['sampled']
+    figures.append(plotInteractions(df, profile, pairs, sample, output_dir))
+
+    corr_table = profile['correlations'].data
     figures.append(plotHeatmap(df, profile, corr_table, output_dir))
 
-    warnings = profile['warnings'].data['warnings']
+    warnings = profile['warnings'].data
 
     figures.append(plotMissingValues(df, profile, warnings, output_dir))
 
@@ -47,7 +48,7 @@ def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = 
         if col_type == 'numeric':
             figures.append(plotNumericColumn(df, profile, col, output_dir))
 
-        if col_type == 'categorical':
+        if col_type == 'category':
             figures.append(plotCategoricalColumn(df, profile, col, output_dir))
 
         if col_type == 'text':
@@ -56,51 +57,67 @@ def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = 
     
     return figures
 
-def plotInteractions(df, profile, pairs, output_dir):
+def plotInteractions(df, profile, pairs, sample, output_dir):
     """
-    Given the pairs of numeric columns to plot, generates scatterplots for each. 
-    Sends to output_dir with name "scatter_{col1}_{col2}.png" where col1 and col2 are the column names.
+    Given the pairs of numeric columns to plot, generates scatterplots for each
+    using the SAMPLE provided (not the full df).
+    Saves each figure to output_dir using:
+        scatter_{col1}_{col2}.png
     """
+
     if not pairs:
         return []
 
     figures = []
 
     for col1, col2 in pairs:
-        # Skip if columns missing
-        if col1 not in df.columns or col2 not in df.columns:
+        # Determine sample key
+        # You can choose either tuple keys or string keys; support both.
+        key_tuple = (col1, col2)
+        key_str = f"{col1}|{col2}"
+
+        # Retrieve sample for this interaction
+        if key_tuple in sample:
+            df_pair = sample[key_tuple]
+        elif key_str in sample:
+            df_pair = sample[key_str]
+        else:
+            # No sample available → skip
             continue
 
-        s1 = df[col1]
-        s2 = df[col2]
 
-        # Drop rows where either is missing
-        df_pair = (
-            pd.concat([s1, s2], axis=1)
-            .dropna()
-        )
-
-        if df_pair.empty:
+        # Defensive: ensure columns exist in sample
+        if col1 not in df_pair.columns or col2 not in df_pair.columns:
             continue
 
-        fig, ax = plt.subplots(figsize=(6, 4))
+        # Plot
+        fig, ax = plt.subplots(figsize=(9, 6))
+        if col1 == col2:
+            x_vals = df_pair[col1].iloc[:, 0]   # first copy
+            y_vals = df_pair[col2].iloc[:, 1]   # second copy
+        else:
+            x_vals = df_pair[col1]
+            y_vals = df_pair[col2]
+
         sns.scatterplot(
-            x=df_pair.iloc[:, 0],
-            y=df_pair.iloc[:, 1],
+            x=x_vals,
+            y=y_vals,
             ax=ax,
             color="steelblue"
         )
 
         ax.set_xlabel(col1)
         ax.set_ylabel(col2)
-        ax.set_title(f"Scatterplot: {col1} vs {col2}")
+        ax.set_title(f"Scatterplot (sample): {col1} vs {col2}")
 
         # Deterministic filename
-        fname = f"scatter_{col1}_{col2}"
+        fname = f"scatter_{col1}_vs_{col2}"
 
         _handle_output(fig, output_dir, fname)
         figures.append(fig)
+
     return figures
+
 
 def plotHeatmap(df, profile, correlations, output_dir):
     """
@@ -117,7 +134,7 @@ def plotHeatmap(df, profile, correlations, output_dir):
     sns.heatmap(
         corr,
         ax=ax,
-        cmap="coolwarm",
+        cmap="coolwarm_r",
         vmin=-1,
         vmax=1,
         annot=False,
@@ -142,25 +159,28 @@ def plotMissingValues(df, profile, warnings, output_dir):
 
     for col in columns: 
         if "missing" in warnings[col]:
-            missing_dict[col] = int(warnings[col]["missing"].split()[0])
+            missing_dict[col] = columns[col]["num_missing"]
     
     if not missing_dict:
         return None
 
    
     fig1 = plotMissingBarChart(columns, num_rows, missing_dict, output_dir)
-    fig2 = plotMissingMatrix(df, columns, num_rows, profile, output_dir)
+    fig2 = plotMissingMatrix(df, columns, num_rows, missing_dict, profile, output_dir)
     return fig1, fig2
+
 
 def plotMissingBarChart(columns, num_rows, missing_dict, output_dir):
     """
-    Given the warnings indicating which columns have missing values,
-    generates a bar chart of the count of non-missing values per column.
+    Generates a bar chart of non-missing counts per column.
+    - Fixed height ~300px
+    - Y-axis shows fractional ticks: 0.2, 0.4, ..., 1.0
+    - Count labels displayed above each bar
     """
-    
 
     non_missing_counts = []
     col_names = []
+    n_cols = len(columns)
 
     for col in columns:
         missing = missing_dict.get(col, 0)
@@ -170,6 +190,13 @@ def plotMissingBarChart(columns, num_rows, missing_dict, output_dir):
 
     fig, ax = plt.subplots(figsize=(12, 6))
 
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+   
+    #ax.tick_params(bottom=False, left=False)
+
+
     sns.barplot(
         x=col_names,
         y=non_missing_counts,
@@ -177,20 +204,36 @@ def plotMissingBarChart(columns, num_rows, missing_dict, output_dir):
         color="steelblue"
     )
 
-    ax.set_title("Non-Missing Values per Column")
-    ax.set_ylabel("Count of Non-Missing Values")
-    ax.set_xlabel("Columns")
+    ax.set_title("")
+    ax.set_ylabel("")
+    ax.set_xlabel("")
+
+    # --- Y-axis ticks: 0.2, 0.4, ..., 1.0 ---
+    frac_ticks = [i/5 for i in range(1, 6)]  # 0.2 → 1.0
+    ax.set_yticks([t * num_rows for t in frac_ticks])
+    ax.set_yticklabels([f"{t:.1f}" for t in frac_ticks])
 
     # Rotate labels for readability
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+    ax.set_xticks(range(n_cols))
+    ax.set_xticklabels(col_names, rotation=45, ha="right")
+
+    # --- Add count labels above each bar ---
+    for i, count in enumerate(non_missing_counts):
+        ax.text(
+            i, count,                # position
+            str(count),              # label
+            ha='center', va='bottom',
+            fontsize=10,
+            color='black'
+        )
 
     # Deterministic filename
     fname = "missing_barchart"
-
     _handle_output(fig, output_dir, fname)
+
     return fig
 
-def plotMissingMatrix(df, columns, n_rows, profile, output_dir):
+def plotMissingMatrix(df, columns, n_rows, missing_dict, profile, output_dir):
     
     if df.empty:
         return None
@@ -198,21 +241,36 @@ def plotMissingMatrix(df, columns, n_rows, profile, output_dir):
     n_cols = len(columns)
 
     fig, ax = plt.subplots(figsize=(max(10, n_cols * 0.3), 10))
+    for spine in ax.spines.values():
+        spine.set_visible(False)
 
     bar_width = 0.8  # adjust thickness here
 
     for i, col in enumerate(columns):
+
+        # If column NOT in missing_dict → draw one solid blue bar
+        if col not in missing_dict:
+            rect = Rectangle(
+                (i - bar_width/2, 0),   # x, y
+                bar_width,              # width
+                n_rows,                 # full height
+                facecolor="steelblue",
+                edgecolor="steelblue"
+            )
+            ax.add_patch(rect)
+            continue
+
+        # Otherwise: row-by-row missingness visualization
         col_data = df[col]
         missing_mask = col_data.isna()
 
         for row_idx, is_missing in enumerate(missing_mask):
             color = "lightgray" if is_missing else "steelblue"
 
-            # Rectangle covering exactly one row
             rect = Rectangle(
-                (i - bar_width/2, row_idx),   # (x, y)
-                bar_width,                    # width
-                1,                            # height
+                (i - bar_width/2, row_idx),
+                bar_width,
+                1,
                 facecolor=color,
                 edgecolor=color
             )
@@ -230,7 +288,7 @@ def plotMissingMatrix(df, columns, n_rows, profile, output_dir):
 
     fname = "missing_matrix_bars"
     _handle_output(fig, output_dir, fname)
-
+    
     return fig
 
 def plotNumericColumn(df, profile, col, output_dir):
@@ -269,15 +327,12 @@ def plotCategoricalColumn(df, profile, col, output_dir):
     """
     if col not in df.columns:
         return None
-
+    
     series = df[col].dropna()
     if series.empty:
         return None
 
-    # Cardinality-aware cap (consistent with your other categorical plots)
-    col_profile = profile.get("columns", {}).get(col, {})
-    cardinality = col_profile.get("cardinality")
-    max_categories = 20 if cardinality != "high" else 50
+    max_categories = 20 
 
     counts = series.value_counts().head(max_categories)
 
@@ -304,6 +359,7 @@ def plotTextColumn(df, profile, col, output_dir):
     """
     Given a text column, generates a word cloud of the most common words. 
     """
+    # TEST AT SOME POINT
     if col not in df.columns:
         return None
 

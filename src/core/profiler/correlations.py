@@ -19,9 +19,7 @@ class CorrelationsComponent(ProfilerComponent):
 
         return SectionResult(
             name = self.name,
-            data = {
-                    "correlations": corr_table
-                }
+            data = corr_table
             )
 
 def cramers_v(x, y):

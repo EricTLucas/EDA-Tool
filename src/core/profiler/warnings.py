@@ -6,29 +6,27 @@ class WarningsComponent(ProfilerComponent):
     def compute(self, df, profile):
         warnings = {}
 
-        corrs = profile["correlations"].data["correlations"]
+        corrs = profile["correlations"].data
 
         cols = profile["columns"].data
 
         for col in cols:
-            warnings[col] =  getWarnings(cols[col], cols[col]["type"]) 
+            warnings[col] =  getWarnings(cols[col], cols[col]["type"], col) 
 
             row = corrs.loc[col]
 
             for other_col, value in row.items():
 
                 if abs(value) > 0.75 and other_col != col:
-                    warnings[col]["high_correlation"] = f"High correlation with {other_col} ({value:.2f})"
+                    warnings[col]["high_correlation"] = f"{col} is highly overall correlated with {other_col}"
 
         return SectionResult(
             name=self.name,
-            data={
-                "warnings": warnings
-            }
+            data=warnings
         )
 
 
-def getWarnings(col_profile, type: str) -> dict:
+def getWarnings(col_profile, type: str, col) -> dict:
     """
     Generate warnings based on the column profile and type.
     Possible warnings include: 
@@ -47,23 +45,23 @@ def getWarnings(col_profile, type: str) -> dict:
     if col_profile["num_missing"] > 0:
         number_missing = col_profile["num_missing"]
         pct_missing = col_profile["pct_missing"]
-        col_warnings["missing"] = f"{number_missing} missing values ({pct_missing:.2%})"
+        col_warnings["missing"] = f"{col} has {number_missing} missing values ({pct_missing:.2%})"
 
     if col_profile["pct_unique"] == 1.0: 
-        col_warnings["unique"] = "All values are unique (possible ID column)"
+        col_warnings["unique"] = f"{col} has unique values (possible ID column)"
 
     if type == "numeric":
         if col_profile["num_zeros"] > 0:
-            col_warnings["zeros"] = f"{col_profile["num_zeros"]} zeros"
+            col_warnings["zeros"] = f"{col} has {col_profile["num_zeros"]} zeros"
 
         if col_profile["num_neg"] > 0:
-            col_warnings["negatives"] = f"{col_profile["num_neg"]} negative values"
+            col_warnings["negatives"] = f"{col} has {col_profile["num_neg"]} negative values"
 
         if col_profile["num_infinity"] > 0:
-            col_warnings["infinity"] = f"{col_profile["num_infinity"]} infinite values"
+            col_warnings["infinity"] = f"{col} has {col_profile["num_infinity"]} infinite values"
 
         if col_profile["uniform_dist"] == True:
-            col_warnings["uniform_dist"] = "Data appears to be uniformly distributed"
+            col_warnings["uniform_dist"] = f"{col} is uniformly distributed"
 
         return col_warnings
     elif type == "category":

@@ -17,10 +17,7 @@ def main():
         for k, v in section.data.items():
             print(f"  {k}: {v}")
 
-        if section.warnings:
-            print("WARNINGS:")
-            for w in section.warnings:
-                print(f"  - {w}")
+        
 
 if __name__ == "__main__":
     main()
