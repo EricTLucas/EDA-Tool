@@ -4,7 +4,7 @@ import argparse
 def main():
     parser = argparse.ArgumentParser(description="EDA Tool")
     parser.add_argument("input", help="Path to dataset or folder")
-    parser.add_argument("--out", help="Directory to save plots", default=None)
+    parser.add_argument("--out", help="Directory to save plots", default="reports")
     args = parser.parse_args()
 
     analyze(args.input, args.out)

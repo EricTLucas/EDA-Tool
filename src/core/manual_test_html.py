@@ -3,7 +3,7 @@ import profiler.column_profiler
 from profiler import Profiler 
 from loader import load_dataset
 from visualizer import visualize_dataset
-from html_generator_new import generate_eda_html
+from html_report_generator import generate_eda_html
 
 def main():
 
