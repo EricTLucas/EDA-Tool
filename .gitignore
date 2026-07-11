@@ -54,3 +54,5 @@ __pycache__/
 # Generated Sample files
 reports/
 sample_files/
+
+manual_test*
