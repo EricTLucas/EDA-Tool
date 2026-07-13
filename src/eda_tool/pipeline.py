@@ -1,11 +1,11 @@
-from loader import load_dataset
-from profiler import Profiler
-from visualizer import visualize_dataset
-from html_report_generator import generate_eda_html
+from .loader import load_dataset
+from .profiler import Profiler
+from .visualizer import visualize_dataset
+from .html_report_generator import generate_eda_html
 import webbrowser
 import os
 
-def analyze(path_or_object, output_dir=r"figures"):
+def analyze(path_or_object, output_dir=r"figures", open_html=True):
     df = load_dataset(path_or_object)
     print("Dataset Loading Complete")
     profile = Profiler(df)
@@ -19,7 +19,8 @@ def analyze(path_or_object, output_dir=r"figures"):
     with open("eda_report.html", "w", encoding="utf-8") as f:
         f.write(html)
 
-    open_html("eda_report.html")
+    if open_html:
+        ("eda_report.html")
 
     return df, profile
 

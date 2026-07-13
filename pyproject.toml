@@ -1,0 +1,15 @@
+[project]
+name = "eda_tool"
+version = "0.1.4"
+description = "A lightweight EDA pipeline with HTML report generation"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pandas",
+    "numpy",
+    "matplotlib",
+]
+
+# This exposes your CLI as a real command
+[project.scripts]
+eda = "eda_tool.cli:main"
