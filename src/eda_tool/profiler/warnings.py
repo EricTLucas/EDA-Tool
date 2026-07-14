@@ -18,7 +18,7 @@ class WarningsComponent(ProfilerComponent):
             for other_col, value in row.items():
 
                 if abs(value) > 0.75 and other_col != col:
-                    warnings[col]["high_correlation"] = f"{col} is highly overall correlated with {other_col}"
+                    warnings[col][f"high_correlation_{other_col}"] = f"{col} is highly overall correlated with {other_col}"
 
         return SectionResult(
             name=self.name,

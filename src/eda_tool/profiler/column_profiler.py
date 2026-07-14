@@ -98,12 +98,17 @@ class ColumnProfiler(ProfilerComponent):
 
 
                 # Quantiles
+                perc5 = series.quantile(0.05)
                 Q1 = series.quantile(0.25)
                 median = series.quantile(0.5)
                 Q3 = series.quantile(0.75)
+                perc95 = series.quantile(0.95)
 
+                col_profile["5thp"] = float(perc5)
                 col_profile["Q1"] = float(Q1)
                 col_profile["median"] = float(median)
+                col_profile["Q3"] = float(Q3)
+                col_profile["95thp"] = float(perc95)
                 col_profile["range"] = float(series.max() - series.min())
                 col_profile["IQR"] = float(Q3 - Q1)
 
@@ -135,11 +140,12 @@ class ColumnProfiler(ProfilerComponent):
 
                 top_values = []
                 for val, count in value_counts.items():
-                    top_values.append({
-                        "value": None if pd.isna(val) else float(val),
-                        "count": int(count),
-                        "percent": float(count / total)
-                    })
+                    top_values.append([
+                        None if pd.isna(val) else float(val),
+                        int(count),
+                        float(count / total)
+                        ])
+                    
 
                 col_profile["common_values"] = top_values
 
@@ -153,11 +159,11 @@ class ColumnProfiler(ProfilerComponent):
 
                 max_values = []
                 for val, count in max_values_counts.items():
-                    max_values.append({
-                        "value": None if pd.isna(val) else float(val),
-                        "count": int(count),
-                        "percent": float(count / total)
-                    })
+                    max_values.append([
+                        None if pd.isna(val) else float(val),
+                        int(count),
+                        float(count / total)
+                    ])
 
                 col_profile["max_values"] = max_values
 
@@ -171,11 +177,11 @@ class ColumnProfiler(ProfilerComponent):
 
                 min_values = []
                 for val, count in min_values_counts.items():
-                    min_values.append({
-                        "value": None if pd.isna(val) else float(val),
-                        "count": int(count),
-                        "percent": float(count / total)
-                    })
+                    min_values.append([
+                        None if pd.isna(val) else float(val),
+                        int(count),
+                        float(count / total)
+                    ])
 
                 col_profile["min_values"] = min_values
 

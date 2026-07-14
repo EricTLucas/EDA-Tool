@@ -386,6 +386,129 @@ def generate_eda_html(df: pd.DataFrame, profile: Dict, output_dir: str) -> str:
     }}
 
 
+    .details-toggle-row {{
+        display: flex;
+        justify-content: flex-end; /* button goes to the right */
+        margin-top: 10px;
+        margin-bottom: 10px; /* space before details panel */
+    }}
+
+    .more-details-btn {{
+        background: #e0e0e0;
+        color: #333;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }}
+
+    .more-details-btn:hover {{
+        background: #d0d0d0;
+    }}
+
+
+    .details-panel {{
+        display: none; /* hidden by default */
+        margin-top: 15px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: #fafafa;
+    }}
+
+    .details-panel.open {{
+        display: block;
+    }}
+
+    .details-tabs {{
+        margin-bottom: 10px;
+    }}
+
+    .anchor-target {{
+        scroll-margin-top: 45px; 
+    }}
+
+    .freq-table {{
+        width: 100%;
+        border-collapse: collapse;
+    }}
+
+    .freq-table th {{
+        text-align: left;
+        font-weight: bold;
+        padding: 6px 8px;
+        border-bottom: 1px solid #ccc;
+    }}
+
+    .freq-table td {{
+        padding: 6px 8px;
+        vertical-align: middle;
+    }}
+
+    .freq-value {{
+        width: 60%;
+    }}
+
+    .freq-count {{
+        width: 30%;
+        text-align: right;
+        padding-right: 12px;
+    }}
+
+    .freq-bar-cell {{
+        width: 10%;
+        position: relative;
+    }}
+
+    .freq-bar {{
+        height: 100%;
+        background: #4a90e2;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }}
+
+    .freq-percent-text {{
+        position: relative;
+        z-index: 2;
+        font-size: 12px;
+        text-align: right;
+        padding-right: 4px;
+    }}
+
+    .inner-tabs {{
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }}
+
+    .inner-tab-button {{
+        background: #eee;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-weight: bold;
+        border-radius: 6px 6px 0 0;
+        color: #555;
+    }}
+
+    .inner-tab-button.active {{
+        background: white;
+        border-bottom: 2px solid white;
+        color: #000;
+    }}
+
+    .inner-tab-content {{
+        display: none;
+    }}
+
+    .inner-tab-content.active {{
+        display: block;
+    }}
+
+
+
 </style>
 </head>
 
@@ -397,7 +520,7 @@ def generate_eda_html(df: pd.DataFrame, profile: Dict, output_dir: str) -> str:
         <a class="nav-link" href="#variables">Variables</a>
         <a class="nav-link" href="#interactions">Interactions</a>
         <a class="nav-link" href="#correlations">Correlations</a>
-        <a class="nav-link" href="#missing">Missing</a>
+        {'<a class="nav-link" href="#missing">Missing</a>' if profile['summary'].data['num_missing_cells'] > 0 else ''}
         <a class="nav-link" href="#sample">Sample</a>
     </div>
 </div>
@@ -506,6 +629,76 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("more-details-btn")) {
+        const panelId = e.target.getAttribute("data-target");
+        const panel = document.getElementById(panelId);
+
+        // Toggle panel visibility
+        const isOpen = panel.classList.toggle("open");
+
+        // Update button text
+        e.target.textContent = isOpen ? "Less details" : "More details";
+    }
+});
+
+// Tab system that works for nested panels
+document.addEventListener("click", function(e) {
+    if (!e.target.classList.contains("tab-button")) return;
+
+    const tabId = e.target.getAttribute("data-tab");
+
+    // Scope: find nearest container that holds tab-content
+    const container = e.target.closest(".details-panel") || 
+                      e.target.closest(".section-box");
+
+    // Deactivate all tabs in this container
+    container.querySelectorAll(".tab-button").forEach(btn => {
+        btn.classList.remove("active");
+    });
+    container.querySelectorAll(".tab-content").forEach(tab => {
+        tab.classList.remove("active");
+    });
+
+    // Activate clicked tab + its content
+    e.target.classList.add("active");
+    container.querySelector("#" + tabId).classList.add("active");
+});
+
+// Inner tab system (Extreme Values)
+document.addEventListener("click", function(e) {
+    if (!e.target.classList.contains("inner-tab-button")) return;
+
+    const tabId = e.target.getAttribute("data-inner-tab");
+    if (!tabId) return;
+
+    // Scope: nearest inner-tabs container
+    const tabsContainer = e.target.closest(".inner-tabs");
+    if (!tabsContainer) return;
+
+    // Content scope: parent that holds inner-tabs + inner-tab-content
+    const contentScope = tabsContainer.parentElement;
+
+    // Deactivate all inner buttons in this group
+    tabsContainer.querySelectorAll(".inner-tab-button").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    // Deactivate all inner contents in this scope
+    contentScope.querySelectorAll(".inner-tab-content").forEach(tab => {
+        tab.classList.remove("active");
+    });
+
+    // Activate clicked button
+    e.target.classList.add("active");
+
+    // Activate matching content
+    const targetContent = contentScope.querySelector("#" + tabId);
+    if (targetContent) {
+        targetContent.classList.add("active");
+    }
+});
+
 
 </script>
 </html>
@@ -596,7 +789,7 @@ def build_overview_section(profile: dict) -> str:
                         rdict[ data[col][alert]] = ["Unique", "red", col]
                 if alert == "uniform_dist":
                         rdict[data[col][alert]] = ["Uniform", "red", col]
-                if alert == "high_correlation":
+                if alert.startswith("high_correlation_"):
                         rdict[ data[col][alert] ] = ["High Correlation", "grey", col]
                 if alert == "negatives":
                         rdict[ data[col][alert] ] = ["Negatives", "blue", col]
@@ -606,6 +799,20 @@ def build_overview_section(profile: dict) -> str:
                         rdict[ data[col][alert] ] = ["Infinity", "blue", col]
 
         return rdict, num_alerts
+
+    def linkColInAlert(alerts_data):
+        new_alerts_data = {}
+        for alert in alerts_data:
+            if "is highly overall correlated with " in alert:
+                
+                col1 = alerts_data[alert][2]
+                col2 = alert.split(" is highly overall correlated with ")[1]
+                new_alert = f'<a class="nav-link" href="#v-{col1}">{col1}</a>' + " is highly overall correlated with " + f'<a class="nav-link" href="#v-{col2}">{col2}</a>' 
+            else:
+                col = alerts_data[alert][2]
+                new_alert = f'<a class="nav-link" href="#v-{col}">{col}</a>' + alert.split(f"{col}")[-1]
+            new_alerts_data[new_alert] = alerts_data[alert]
+        return new_alerts_data
 
     def build_alert_table(data: dict) -> str:
        
@@ -633,11 +840,12 @@ def build_overview_section(profile: dict) -> str:
     overview_data = prepOverviewData(raw_overview_data)
     col_data = prepOverviewCol(raw_col_data)
     alerts_data, alert_count = prepAlertData(raw_alerts_data)
+    new_alerts_data = linkColInAlert(alerts_data)
 
 
     overview_html = build_table_component(overview_data, "Dataset Statistics", "1/2")
     col_html = build_table_component(col_data, "Variable Types", "1/2")
-    alerts_html = build_alert_table(alerts_data)
+    alerts_html = build_alert_table(new_alerts_data)
 
     alerts_data = alerts_data.values()
 
@@ -645,7 +853,7 @@ def build_overview_section(profile: dict) -> str:
 
     # ---- Build tabbed section ----
     section_html = f"""
-    <div class="section" id="overview">
+    <div class="section anchor-target" id="overview">
         <div class="section-title">Overview</div>
 
         <div class="section-box">
@@ -691,6 +899,7 @@ def build_variables_section(profile, var_alerts, output_dir):
     """
 
     columns = profile["columns"].data
+    rows = profile["summary"].data['rows']
     html_sections = []
 
     col_alerts = {}
@@ -699,11 +908,21 @@ def build_variables_section(profile, var_alerts, output_dir):
         col_alerts[col] = []
 
     for alert in var_alerts:
+        if (alert[0], alert[1]) in col_alerts[alert[2]]:
+            continue
         col_alerts[alert[2]].append( (alert[0], alert[1]) ) 
-    
+
     for col in columns:
         col_data = columns[col]
         dtype = col_data["type"]
+
+        col_alert_html = ""
+
+        for col_alert_entries in col_alerts[col]:
+                
+            col_alert_html += f"""
+            <div class='value-{col_alert_entries[1]}'>{col_alert_entries[0]}</div>
+            """
 
         if dtype == "numeric":
             col_sum_table1 = {
@@ -728,26 +947,148 @@ def build_variables_section(profile, var_alerts, output_dir):
             col_sum_table2_html = build_table_component(col_sum_table2, "", "1/3")
             hist_path = os.path.join(output_dir, f"hist_{col}.png")
 
-            col_alert_html = ""
+           
 
-            for col_alert_entries in col_alerts[col]:
-                
-                col_alert_html += f"""
-                <div class='value-{col_alert_entries[1]}'>{col_alert_entries[0]}</div>
-                """
+            stats_table_data1 = {
+                    "Minimum": col_data["min"],
+                    "5-th percentile" : col_data["5thp"],
+                    "Q1" : col_data["Q1"],
+                    "Median" : col_data["median"],
+                    "Q3": col_data["Q3"],
+                    "95-th percentile": col_data["95thp"],
+                    "Maximum": col_data["max"],
+                    "Range": col_data["range"],
+                    "Interquartile range (IQR)" : col_data["IQR"]
+                }
+
+            stats_table_data2 = {
+                    "Standard deviation": col_data["std"],
+                    "Coefficient of variation (CV)": col_data["coefficient_of_variation"],
+                    "Kurtosis": col_data["kurtosis"],
+                    "Mean": col_data["mean"],
+                    "Median Absolute Deviation (MAD)": col_data["MAD"],
+                    "Skewness": col_data["skew"],
+                    "Sum": col_data["sum"],
+                    "Variance": col_data["variance"],
+                    "Monotonicity": col_data["monotonicity"]
+                }
+            
+            cvs = col_data["common_values"]
+            common_values_data = [
+                cvs[0],
+                cvs[1],
+                cvs[2],
+                cvs[3],
+                cvs[4],
+                cvs[5],
+                cvs[6],
+                cvs[7],
+                cvs[8],
+                cvs[9]
+                ]
+            total_common_values = sum([i[1] for i in common_values_data])
+            if col_data["num_missing"] > 0:
+                common_values_data.append( ["Missing Values", col_data["num_missing"], col_data["pct_missing"]] )
+            common_values_data.append([
+                f"Other Values({col_data["num_unique"] - 10})", 
+                rows - total_common_values - col_data['num_missing'], 
+                (rows - total_common_values) / rows
+                ])
+            minevs = col_data["min_values"]
+            maxevs = col_data["max_values"]
+            extreme_values_min_data = [
+                minevs[0],
+                minevs[1],
+                minevs[2],
+                minevs[3],
+                minevs[4],
+                minevs[5],
+                minevs[6],
+                minevs[7],
+                minevs[8],
+                minevs[9],
+            ]
+            extreme_values_max_data = [
+                maxevs[0],
+                maxevs[1],
+                maxevs[2],
+                maxevs[3],
+                maxevs[4],
+                maxevs[5],
+                maxevs[6],
+                maxevs[7],
+                maxevs[8],
+                maxevs[9],
+            ]
+
+            stats_table_html1 = build_table_component(stats_table_data1, "Quantile Statistics", "1/2")
+            stats_table_html2 = build_table_component(stats_table_data2, "Descriptive Statistics", "1/2")
+
+            common_values_table_html = build_frequency_table(common_values_data, "", "1")
+            extreme_values_min_table_html = build_frequency_table(extreme_values_min_data, "", "1")
+            extreme_values_max_table_html = build_frequency_table(extreme_values_max_data, "", "1")
 
             section_html = f"""
-            <div class="section-box variable-box">
+            <div class="section-box variable-box anchor-target" id="v-{col}">
                 <div class="variable-title">{col}</div>
                 <div class="variable-type">Real Number</div>
                 {col_alert_html}
                 <div class="row-flex">
-                        {col_sum_table1_html}
-                        {col_sum_table2_html}
-                        <div class="graph-container-third">
-                            <img src="{hist_path}" alt="{col} Histograph">
-                        </div>
+                    {col_sum_table1_html}
+                    {col_sum_table2_html}
+                    <div class="graph-container-third">
+                        <img src="{hist_path}" alt="{col} Histograph">
+                    </div>
                 </div>
+
+                <div class="details-toggle-row">
+                    <div class="more-details-btn" data-target="details-{col}">
+                        More details
+                    </div>
+                </div>
+
+                <div class="details-panel" id="details-{col}">
+        
+                    <div class="tabs details-tabs">
+                        <button class="tab-button active" data-tab="stats-{col}">Statistics</button>
+                        <button class="tab-button" data-tab="common-{col}">Common Values</button>
+                        <button class="tab-button" data-tab="extreme-{col}">Extreme Values</button>
+                    </div>
+
+                    <div class="tab-content active" id="stats-{col}">
+                        <div class="row-flex">
+                            {stats_table_html1}
+                            {stats_table_html2}
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="common-{col}">
+                        {common_values_table_html}
+                    </div>
+
+                    <div class="tab-content" id="extreme-{col}">
+
+                        
+
+                        <div class="tabs inner-tabs">
+                            <button class="inner-tab-button active" data-inner-tab="extreme-min-{col}">Minimum Values</button>
+                            <button class="inner-tab-button" data-inner-tab="extreme-max-{col}">Maximum Values</button>
+                        </div>
+    
+                        <div class="inner-tab-content active" id="extreme-min-{col}">
+                            {extreme_values_min_table_html}
+                        </div>
+
+                        <div class="inner-tab-content" id="extreme-max-{col}">
+                            {extreme_values_max_table_html}
+                        </div>
+
+                    
+ 
+                    </div>
+
+                </div>
+
             </div>
             """
 
@@ -764,16 +1105,15 @@ def build_variables_section(profile, var_alerts, output_dir):
             col_sum_table_html = build_table_component(col_sum_table, "", "1/2")
             bar_path = os.path.join(output_dir, f"cat_{col}.png")
 
-            col_alert_html = ""
+            freq_table_data = [
+                    [entry, col_data["counts"][entry], col_data["percentages"][entry]] for entry in col_data["counts"].keys()
+                ]
 
-            for col_alert_entries in col_alerts[col]:
-                
-                col_alert_html += f"""
-                <div class='value-{col_alert_entries[1]}'>{col_alert_entries[0]}</div>
-                """
+            freq_table_html = build_frequency_table(freq_table_data, "", "1")
+
 
             section_html = f"""
-            <div class="section-box variable-box">
+            <div class="section-box variable-box anchor-target" id="v-{col}">
                 <div class="variable-title">{col}</div>
                 <div class="variable-type">Categorical</div>
                 {col_alert_html}
@@ -783,6 +1123,19 @@ def build_variables_section(profile, var_alerts, output_dir):
                             <img src="{bar_path}" alt="{col} Histograph">
                         </div>
                 </div>
+                <div class="details-toggle-row">
+                    <div class="more-details-btn" data-target="details-{col}">
+                        More details
+                    </div>
+                </div>
+
+                <div class="details-panel" id="details-{col}">
+
+                    {freq_table_html}
+              
+                </div>
+
+
             </div>
             """
 
@@ -799,16 +1152,8 @@ def build_variables_section(profile, var_alerts, output_dir):
             col_sum_table_html = build_table_component(col_sum_table, "", "1/2")
             cloud_path = os.path.join(output_dir, f"wordcloud_{col}.png")
 
-            col_alert_html = ""
-
-            for col_alert_entries in col_alerts[col]:
-                
-                col_alert_html += f"""
-                <div class='value-{col_alert_entries[1]}'>{col_alert_entries[0]}</div>
-                """
-
             section_html = f"""
-            <div class="section-box variable-box">
+            <div class="section-box variable-box anchor-target" id="v-{col}">
                 <div class="variable-title">{col}</div>
                 <div class="variable-type">Text</div>
                 {col_alert_html}
@@ -824,7 +1169,7 @@ def build_variables_section(profile, var_alerts, output_dir):
             html_sections.append(section_html)
 
     final_html = f"""
-    <div class="section" id="variables">
+    <div class="section anchor-target" id="variables">
         <div class="section-title">Variables</div>
         {''.join(html_sections)}
     </div>
@@ -903,7 +1248,7 @@ def build_interactions_section_html(profile, output_dir):
         """
 
     html = f"""
-    <div class="section" id="interaction">
+    <div class="section anchor-target" id="interactions">
         <div class="section-title">Interactions</div>
 
         <div class="section-box interactions-box">
@@ -950,7 +1295,7 @@ def corr_table_to_html(corr_df, output_dir, width="1"):
 
     # Wrap in scrollable container
     return f"""
-    <div class="section" id="correlation">
+    <div class="section anchor-target" id="correlations">
         <div class="section-title">Correlations</div>
 
         <div class="section-box">
@@ -997,7 +1342,7 @@ def build_missing_section(profile: dict, output_dir) -> str:
     matrix_path = os.path.join(output_dir, "missing_matrix_bars.png")
 
     section_html = f"""
-    <div class="section" id="missing">
+    <div class="section anchor-target" id="missing">
         <div class="section-title">Missing Values</div>
 
         <div class="section-box">
@@ -1074,7 +1419,7 @@ def build_sample_section(profile: dict) -> str:
     tail_html = df_head_to_html(profile["summary"].data["sample_values_last"], width="1")
 
     section_html = f"""
-    <div class="section" id="sample">
+    <div class="section anchor-target" id="sample">
         <div class="section-title">Sample</div>
 
         <div class="section-box">
@@ -1097,3 +1442,52 @@ def build_sample_section(profile: dict) -> str:
     </div>
     """
     return section_html
+
+def build_frequency_table(data: list, title: str, width: str = "1/2") -> str:
+    """
+    data: list of tuples (value, count, percent)
+          percent should be a float between 0 and 1
+    """
+
+    width_class = {
+        "1": "table-w1",
+        "1/2": "table-w2",
+        "1/3": "table-w3"
+    }.get(width, "table-w2")
+
+    rows_html = ""
+   
+    for value, count, pct in data:
+        pct_percent = f"{pct*100:.1f}%"
+        pct_width = pct * 100  
+
+        rows_html += f"""
+        <tr>
+            <td class="freq-value">{value}</td>
+            <td class="freq-count">{count}</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:{pct_width}%;"></div>
+                <div class="freq-percent-text">{pct_percent}</div>
+            </td>
+        </tr>
+        """
+
+    return f"""
+    <div class="table-wrapper {width_class}">
+        <div class="table-title">{title}</div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows_html}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    """
