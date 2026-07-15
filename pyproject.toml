@@ -1,6 +1,6 @@
 [project]
 name = "eda_tool"
-version = "0.1.6"
+version = "0.1.0"
 description = "A lightweight EDA pipeline with HTML report generation"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -14,6 +14,8 @@ dependencies = [
     "pyarrow"
 ]
 
-# This exposes your CLI as a real command
 [project.scripts]
 eda = "eda_tool.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

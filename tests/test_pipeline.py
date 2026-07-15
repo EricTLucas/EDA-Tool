@@ -1,4 +1,4 @@
-from src.core.pipeline import analyze
+from eda_tool.pipeline import analyze
 import pandas as pd
 
 def test_pipeline_runs(tmp_path="reports"):

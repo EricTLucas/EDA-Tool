@@ -17,4 +17,5 @@ Provide a dataset → receive a complete HTML report with summaries, statistics,
 
 ```bash
 eda iris.csv --out reports/
+```
 

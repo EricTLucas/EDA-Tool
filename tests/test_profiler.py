@@ -1,4 +1,4 @@
-from src.core.profiler import profile_dataset
+from eda_tool.profiler import profile_dataset
 
 import pandas as pd
 

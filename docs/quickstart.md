@@ -12,6 +12,7 @@ Use any CSV file, for example:
 
 ```bash
 eda tests/sample_files/iris.csv --out reports/
+```
 
 ## 3. Open the report
 

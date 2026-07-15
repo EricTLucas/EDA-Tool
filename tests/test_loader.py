@@ -1,4 +1,4 @@
-from src.core.loader import load_dataset
+from eda_tool.loader import load_dataset
 import pandas as pd
 
 def test_load_single_csv():
