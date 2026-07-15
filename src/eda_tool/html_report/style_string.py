@@ -36,6 +36,14 @@ style_string = """<style>
         padding-right: 20px;
     }
 
+    .dataset-name {
+        gap: 16px;
+        font-size: 20px;
+        width: 100%;
+        padding-left: 20px;
+
+    }
+
 
     .nav-link {
         text-decoration: none;

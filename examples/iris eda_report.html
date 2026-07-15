@@ -1,0 +1,2866 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>EDA Report</title>
+
+</head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f7f7f7;
+        margin: 0;
+        padding-top: 40px;
+    }
+
+    .container {
+        margin-left: 10%;
+        margin-right: 10%;
+    }
+
+    .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        border-bottom: 1px solid #ccc;
+        z-index: 100;
+        padding: 15px 0;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    
+    .header-content {
+        width: 100%;
+        max-width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        gap: 20px;
+        font-size: 16px;
+
+        padding-right: 20px;
+    }
+
+
+    .nav-link {
+        text-decoration: none;
+        color: #0077cc;
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .section {
+        margin-top: 40px;
+    }
+
+    .section-title {
+        font-size: 40px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .section-box {
+
+
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .image-box {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .image-box img {
+        max-width: 100%;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .image-caption {
+        margin-top: 5px;
+        font-size: 14px;
+        color: #555;
+    }
+    /* Tabs container */
+    .tabs {
+        display: flex;
+        gap: 10px;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 15px;
+    }
+
+    /* Tab buttons */
+    .tab-button {
+        background: #eee;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-weight: bold;
+        border-radius: 6px 6px 0 0;
+        color: #555;
+    }
+
+    .tab-button.active {
+        background: white;
+        border-bottom: 2px solid white;
+        color: #000;
+    }
+
+    /* Tab content */
+    
+
+    .tab-content {
+        display: block;        
+        visibility: hidden;    
+        height: 0;             
+        overflow: hidden;     
+    }
+
+    .tab-content.active {
+        visibility: visible;
+        height: auto;
+        overflow: visible;
+    }
+
+    .table-box {
+        width: auto;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+        overflow: hidden; 
+
+    }
+
+    /* width options */
+    .table-w1  { flex: 0 0 100%; }
+    .table-w2  { flex: 1 1 0; max-width: 50%; }
+    .table-w3  { flex: 1 1 0; max-width: 33.333%; }
+
+
+    .table-box table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-box tr {
+        height: 38px;              
+    }
+
+    .table-box td {
+        padding: 8px 12px;
+        vertical-align: middle;
+    }
+
+    .table-box .label {
+        font-weight: bold;
+        width: 80%;
+    }
+
+    .table-box .value {
+        width: 20%;
+        
+    }
+
+    .table-box .avalue {
+        width: 80%;
+    }
+
+    .value-red {
+        background: #d9534f;   
+        color: white; 
+        text-align: center;
+        padding: 2px 4px;
+        border-radius: 7px;
+        display: inline-block;
+    }
+
+    .value-blue {
+        background: #00A8FF;   
+        color: white; 
+        text-align: center;
+        padding: 2px 4px;
+        border-radius: 7px;
+        display: inline-block;
+    }
+
+    .value-grey {
+        background: #2B2B2B;   
+        color: white; 
+        text-align: center;
+        padding: 2px 4px;
+        border-radius: 7px;
+        display: inline-block;
+    }
+
+
+    /* alternating row colors */
+    .table-box tr:nth-child(odd) {
+        background: #f2f2f2;
+    }
+
+    .table-box tr:nth-child(even) {
+        background: #ffffff;
+    }
+
+    .table-wrapper {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .table-title {
+        font-weight: bold;
+        margin-bottom: 8px;
+        font-size: 20px; 
+    }
+
+    .row-flex {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .flex-item {
+        display: block;
+    }
+
+    .alert-badge {
+        display: inline-block;
+        min-width: 18px;
+        padding: 2px 6px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        background: #d9534f; /* red */
+        border-radius: 12px;
+        margin-left: 6px;
+        line-height: 1;
+    }
+
+    /* horizontal scroll */
+    
+
+    .scroll-x {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+    }
+
+    /* index column styling */
+    .index-col {
+        font-weight: bold;
+        background: #f0f0f0;
+        width: 60px;
+        text-align: center;
+        border-right: 1px solid #ccc;
+    }
+
+    /* header cells */
+    .df-head-table th {
+        font-weight: bold;
+        background: #f0f0f0;
+        padding: 8px 12px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    /* ensure table cells don't wrap */
+    .df-head-table td {
+        white-space: nowrap;
+    }
+
+
+    .graph-container {
+        width: 100%;
+        max-width: 600px;
+
+        /* REMOVE height constraints */
+        height: auto;
+
+        /* REMOVE max-height: 400px; */
+        /* REMOVE overflow: hidden; */
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .graph-container img {
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .graph-container-third {
+        width: 33.333%;          
+        max-width: 100%;         
+        height: auto;
+        max-height: 400px;       
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .graph-container-third img {
+        width: auto;
+        height: auto;
+        max-width: 100%;         /* shrink proportionally to container width */
+        max-height: 100%;        /* shrink proportionally to container height */
+        object-fit: contain;     /* never crop, never distort */
+    }
+
+
+    .interactions-tabs,
+    .interactions-subtabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .interactions-tab-button,
+    .interactions-subtab-button {
+        padding: 0.25rem 0.5rem;
+        cursor: pointer;
+    }
+
+    .interactions-tab-button-active,
+    .interactions-subtab-button-active {
+        background-color: #ddd;
+    }
+
+    .interactions-tab-content,
+    .interactions-subtab-content {
+        display: none;
+    }
+
+    .interactions-tab-content-active,
+    .interactions-subtab-content-active {
+        display: block;
+    }
+    #variables .variable-box {
+        margin-bottom: 20px;   
+    }
+
+    .variable-title {
+        font-size: 30px;
+    }
+
+    .variable-type {
+        font-size: 20px;
+        color: grey;
+        padding-bottom: 10px;
+        padding-top: 10px;
+    }
+
+
+    .details-toggle-row {
+        display: flex;
+        justify-content: flex-end; /* button goes to the right */
+        margin-top: 10px;
+        margin-bottom: 10px; /* space before details panel */
+    }
+
+    .more-details-btn {
+        background: #e0e0e0;
+        color: #333;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .more-details-btn:hover {
+        background: #d0d0d0;
+    }
+
+
+    .details-panel {
+        display: none; /* hidden by default */
+        margin-top: 15px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: #fafafa;
+    }
+
+    .details-panel.open {
+        display: block;
+    }
+
+    .details-tabs {
+        margin-bottom: 10px;
+    }
+
+    .anchor-target {
+        scroll-margin-top: 45px; 
+    }
+
+    .freq-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .freq-table th {
+        text-align: left;
+        font-weight: bold;
+        padding: 6px 8px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .freq-table td {
+        padding: 6px 8px;
+        vertical-align: middle;
+    }
+
+    .freq-value {
+        width: 60%;
+    }
+
+    .freq-count {
+        width: 30%;
+        text-align: right;
+        padding-right: 12px;
+    }
+
+    .freq-bar-cell {
+        width: 10%;
+        position: relative;
+    }
+
+    .freq-bar {
+        height: 100%;
+        background: #4a90e2;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    .freq-percent-text {
+        position: relative;
+        z-index: 2;
+        font-size: 12px;
+        text-align: right;
+        padding-right: 4px;
+    }
+
+    .inner-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .inner-tab-button {
+        background: #eee;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-weight: bold;
+        border-radius: 6px 6px 0 0;
+        color: #555;
+    }
+
+    .inner-tab-button.active {
+        background: white;
+        border-bottom: 2px solid white;
+        color: #000;
+    }
+
+    .inner-tab-content {
+        display: none;
+    }
+
+    .inner-tab-content.active {
+        display: block;
+    }
+
+
+
+</style>
+
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <a class="nav-link" href="#overview">Overview</a>
+        <a class="nav-link" href="#variables">Variables</a>
+        <a class="nav-link" href="#interactions">Interactions</a>
+        <a class="nav-link" href="#correlations">Correlations</a>
+        
+        <a class="nav-link" href="#sample">Sample</a>
+    </div>
+</div>
+<div class="container">
+
+
+    <div class="section anchor-target" id="overview">
+        <div class="section-title">Overview</div>
+
+        <div class="section-box">
+
+            <div class="tabs">
+                <button class="tab-button active" data-tab="overview-tab">Overview</button>
+                <button class="tab-button" data-tab="alerts-tab">
+                    Alerts <span class="alert-badge">12</span>
+                </button>
+            </div>
+
+            <div class="tab-content active" id="overview-tab">
+                <div class="row-flex">
+                    
+    <div class="table-wrapper table-w2">
+        <div class="table-title">Dataset Statistics</div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Number of Variables</td><td class='value'>5</td></tr><tr><td class='label'>Number of Observations</td><td class='value'>150</td></tr><tr><td class='label'>Missing Cells</td><td class='value'>0</td></tr><tr><td class='label'>Missing Cells (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Duplicate Rows</td><td class='value'>3</td></tr><tr><td class='label'>Duplicate Rows (%)</td><td class='value'>2.00%</td></tr><tr><td class='label'>Total Size in Memory</td><td class='value'>7.21 KiB</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                    
+    <div class="table-wrapper table-w2">
+        <div class="table-title">Variable Types</div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Numeric</td><td class='value'>4</td></tr><tr><td class='label'>Category</td><td class='value'>1</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                </div>
+            </div>
+
+
+            <div class="tab-content" id="alerts-tab">
+                
+        <div class="table-wrapper table-w1">
+            <div class="table-title">Alerts</div>
+            <div class="table-box">
+                <table>
+                    <tr><td class='avalue'><a class="nav-link" href="#v-sepal_length">sepal_length</a> is highly overall correlated with <a class="nav-link" href="#v-petal_length">petal_length</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-sepal_length">sepal_length</a> is highly overall correlated with <a class="nav-link" href="#v-petal_width">petal_width</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-sepal_length">sepal_length</a> is highly overall correlated with <a class="nav-link" href="#v-species">species</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-petal_length">petal_length</a> is highly overall correlated with <a class="nav-link" href="#v-sepal_length">sepal_length</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-petal_length">petal_length</a> is highly overall correlated with <a class="nav-link" href="#v-petal_width">petal_width</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-petal_length">petal_length</a> is highly overall correlated with <a class="nav-link" href="#v-species">species</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-petal_width">petal_width</a> is highly overall correlated with <a class="nav-link" href="#v-sepal_length">sepal_length</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-petal_width">petal_width</a> is highly overall correlated with <a class="nav-link" href="#v-petal_length">petal_length</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-petal_width">petal_width</a> is highly overall correlated with <a class="nav-link" href="#v-species">species</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-species">species</a> is highly overall correlated with <a class="nav-link" href="#v-sepal_length">sepal_length</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-species">species</a> is highly overall correlated with <a class="nav-link" href="#v-petal_length">petal_length</a></td><td class='value-grey'>High Correlation</td></tr><tr><td class='avalue'><a class="nav-link" href="#v-species">species</a> is highly overall correlated with <a class="nav-link" href="#v-petal_width">petal_width</a></td><td class='value-grey'>High Correlation</td></tr>
+                </table>
+            </div>
+        </div>
+        
+            </div>
+
+        </div>
+    </div>
+    
+    <div class="section anchor-target" id="variables">
+        <div class="section-title">Variables</div>
+        
+            <div class="section-box variable-box anchor-target" id="v-sepal_length">
+                <div class="variable-title">sepal_length</div>
+                <div class="variable-type">Real Number</div>
+                
+            <div class='value-grey'>High Correlation</div>
+            
+                <div class="row-flex">
+                    
+    <div class="table-wrapper table-w3">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Distinct</td><td class='value'>35</td></tr><tr><td class='label'>Distinct (%)</td><td class='value'>23.33%</td></tr><tr><td class='label'>Missing</td><td class='value'>0</td></tr><tr><td class='label'>Missing (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Infinite</td><td class='value'>0</td></tr><tr><td class='label'>Infinite (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Mean</td><td class='value'>5.84</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                    
+    <div class="table-wrapper table-w3">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Minimum</td><td class='value'>4.3</td></tr><tr><td class='label'>Maximum</td><td class='value'>7.9</td></tr><tr><td class='label'>Zeros</td><td class='value'>0</td></tr><tr><td class='label'>Zeros (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Negative</td><td class='value'>0</td></tr><tr><td class='label'>Negative (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Memory size (KiB)</td><td class='value'>1.30</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                    <div class="graph-container-third">
+                        <img src="reports\hist_sepal_length.png" alt="sepal_length Histograph">
+                    </div>
+                </div>
+
+                <div class="details-toggle-row">
+                    <div class="more-details-btn" data-target="details-sepal_length">
+                        More details
+                    </div>
+                </div>
+
+                <div class="details-panel" id="details-sepal_length">
+        
+                    <div class="tabs details-tabs">
+                        <button class="tab-button active" data-tab="stats-sepal_length">Statistics</button>
+                        <button class="tab-button" data-tab="common-sepal_length">Common Values</button>
+                        <button class="tab-button" data-tab="extreme-sepal_length">Extreme Values</button>
+                    </div>
+
+                    <div class="tab-content active" id="stats-sepal_length">
+                        <div class="row-flex">
+                            
+    <div class="table-wrapper table-w2">
+        <div class="table-title">Quantile Statistics</div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Minimum</td><td class='value'>4.3</td></tr><tr><td class='label'>5-th percentile</td><td class='value'>4.6</td></tr><tr><td class='label'>Q1</td><td class='value'>5.1</td></tr><tr><td class='label'>Median</td><td class='value'>5.8</td></tr><tr><td class='label'>Q3</td><td class='value'>6.4</td></tr><tr><td class='label'>95-th percentile</td><td class='value'>7.254999999999998</td></tr><tr><td class='label'>Maximum</td><td class='value'>7.9</td></tr><tr><td class='label'>Range</td><td class='value'>3.6000000000000005</td></tr><tr><td class='label'>Interquartile range (IQR)</td><td class='value'>1.3000000000000007</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                            
+    <div class="table-wrapper table-w2">
+        <div class="table-title">Descriptive Statistics</div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Standard deviation</td><td class='value'>0.828066127977863</td></tr><tr><td class='label'>Coefficient of variation (CV)</td><td class='value'>0.14171125977944032</td></tr><tr><td class='label'>Kurtosis</td><td class='value'>-0.5520640413156395</td></tr><tr><td class='label'>Mean</td><td class='value'>5.843333333333334</td></tr><tr><td class='label'>Median Absolute Deviation (MAD)</td><td class='value'>0.7000000000000002</td></tr><tr><td class='label'>Skewness</td><td class='value'>0.3149109566369728</td></tr><tr><td class='label'>Sum</td><td class='value'>876.5</td></tr><tr><td class='label'>Variance</td><td class='value'>0.6856935123042507</td></tr><tr><td class='label'>Monotonicity</td><td class='value'>none</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="common-sepal_length">
+                        
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">5.0</td>
+            <td class="freq-count">10</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:6.666666666666667%;"></div>
+                <div class="freq-percent-text">6.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.1</td>
+            <td class="freq-count">9</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:6.0%;"></div>
+                <div class="freq-percent-text">6.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.3</td>
+            <td class="freq-count">9</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:6.0%;"></div>
+                <div class="freq-percent-text">6.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.7</td>
+            <td class="freq-count">8</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:5.333333333333334%;"></div>
+                <div class="freq-percent-text">5.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.7</td>
+            <td class="freq-count">8</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:5.333333333333334%;"></div>
+                <div class="freq-percent-text">5.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.8</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.5</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.4</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.9</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.4</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">Other Values(25)</td>
+            <td class="freq-count">73</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:48.66666666666667%;"></div>
+                <div class="freq-percent-text">48.7%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                    </div>
+
+                    <div class="tab-content" id="extreme-sepal_length">
+
+                        
+
+                        <div class="tabs inner-tabs">
+                            <button class="inner-tab-button active" data-inner-tab="extreme-min-sepal_length">Minimum Values</button>
+                            <button class="inner-tab-button" data-inner-tab="extreme-max-sepal_length">Maximum Values</button>
+                        </div>
+    
+                        <div class="inner-tab-content active" id="extreme-min-sepal_length">
+                            
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">4.3</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.4</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.5</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.6</td>
+            <td class="freq-count">4</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.666666666666667%;"></div>
+                <div class="freq-percent-text">2.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.7</td>
+            <td class="freq-count">2</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:1.3333333333333335%;"></div>
+                <div class="freq-percent-text">1.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.8</td>
+            <td class="freq-count">5</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:3.3333333333333335%;"></div>
+                <div class="freq-percent-text">3.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.9</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.0</td>
+            <td class="freq-count">10</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:6.666666666666667%;"></div>
+                <div class="freq-percent-text">6.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.1</td>
+            <td class="freq-count">9</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:6.0%;"></div>
+                <div class="freq-percent-text">6.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.2</td>
+            <td class="freq-count">4</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.666666666666667%;"></div>
+                <div class="freq-percent-text">2.7%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+
+                        <div class="inner-tab-content" id="extreme-max-sepal_length">
+                            
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">7.9</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">7.7</td>
+            <td class="freq-count">4</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.666666666666667%;"></div>
+                <div class="freq-percent-text">2.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">7.6</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">7.4</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">7.3</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">7.2</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">7.1</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">7.0</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.9</td>
+            <td class="freq-count">4</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.666666666666667%;"></div>
+                <div class="freq-percent-text">2.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.8</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+
+                    
+ 
+                    </div>
+
+                </div>
+
+            </div>
+            
+            <div class="section-box variable-box anchor-target" id="v-sepal_width">
+                <div class="variable-title">sepal_width</div>
+                <div class="variable-type">Real Number</div>
+                
+                <div class="row-flex">
+                    
+    <div class="table-wrapper table-w3">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Distinct</td><td class='value'>23</td></tr><tr><td class='label'>Distinct (%)</td><td class='value'>15.33%</td></tr><tr><td class='label'>Missing</td><td class='value'>0</td></tr><tr><td class='label'>Missing (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Infinite</td><td class='value'>0</td></tr><tr><td class='label'>Infinite (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Mean</td><td class='value'>3.05</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                    
+    <div class="table-wrapper table-w3">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Minimum</td><td class='value'>2.0</td></tr><tr><td class='label'>Maximum</td><td class='value'>4.4</td></tr><tr><td class='label'>Zeros</td><td class='value'>0</td></tr><tr><td class='label'>Zeros (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Negative</td><td class='value'>0</td></tr><tr><td class='label'>Negative (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Memory size (KiB)</td><td class='value'>1.30</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                    <div class="graph-container-third">
+                        <img src="reports\hist_sepal_width.png" alt="sepal_width Histograph">
+                    </div>
+                </div>
+
+                <div class="details-toggle-row">
+                    <div class="more-details-btn" data-target="details-sepal_width">
+                        More details
+                    </div>
+                </div>
+
+                <div class="details-panel" id="details-sepal_width">
+        
+                    <div class="tabs details-tabs">
+                        <button class="tab-button active" data-tab="stats-sepal_width">Statistics</button>
+                        <button class="tab-button" data-tab="common-sepal_width">Common Values</button>
+                        <button class="tab-button" data-tab="extreme-sepal_width">Extreme Values</button>
+                    </div>
+
+                    <div class="tab-content active" id="stats-sepal_width">
+                        <div class="row-flex">
+                            
+    <div class="table-wrapper table-w2">
+        <div class="table-title">Quantile Statistics</div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Minimum</td><td class='value'>2.0</td></tr><tr><td class='label'>5-th percentile</td><td class='value'>2.3449999999999998</td></tr><tr><td class='label'>Q1</td><td class='value'>2.8</td></tr><tr><td class='label'>Median</td><td class='value'>3.0</td></tr><tr><td class='label'>Q3</td><td class='value'>3.3</td></tr><tr><td class='label'>95-th percentile</td><td class='value'>3.8</td></tr><tr><td class='label'>Maximum</td><td class='value'>4.4</td></tr><tr><td class='label'>Range</td><td class='value'>2.4000000000000004</td></tr><tr><td class='label'>Interquartile range (IQR)</td><td class='value'>0.5</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                            
+    <div class="table-wrapper table-w2">
+        <div class="table-title">Descriptive Statistics</div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Standard deviation</td><td class='value'>0.4335943113621737</td></tr><tr><td class='label'>Coefficient of variation (CV)</td><td class='value'>0.14197587143489643</td></tr><tr><td class='label'>Kurtosis</td><td class='value'>0.2907810623654279</td></tr><tr><td class='label'>Mean</td><td class='value'>3.0540000000000003</td></tr><tr><td class='label'>Median Absolute Deviation (MAD)</td><td class='value'>0.25</td></tr><tr><td class='label'>Skewness</td><td class='value'>0.3340526621720866</td></tr><tr><td class='label'>Sum</td><td class='value'>458.1</td></tr><tr><td class='label'>Variance</td><td class='value'>0.1880040268456376</td></tr><tr><td class='label'>Monotonicity</td><td class='value'>none</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="common-sepal_width">
+                        
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">3.0</td>
+            <td class="freq-count">26</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:17.333333333333336%;"></div>
+                <div class="freq-percent-text">17.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.8</td>
+            <td class="freq-count">14</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:9.333333333333334%;"></div>
+                <div class="freq-percent-text">9.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.2</td>
+            <td class="freq-count">13</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.666666666666668%;"></div>
+                <div class="freq-percent-text">8.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.1</td>
+            <td class="freq-count">12</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.0%;"></div>
+                <div class="freq-percent-text">8.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.4</td>
+            <td class="freq-count">12</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.0%;"></div>
+                <div class="freq-percent-text">8.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.9</td>
+            <td class="freq-count">10</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:6.666666666666667%;"></div>
+                <div class="freq-percent-text">6.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.7</td>
+            <td class="freq-count">9</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:6.0%;"></div>
+                <div class="freq-percent-text">6.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.5</td>
+            <td class="freq-count">8</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:5.333333333333334%;"></div>
+                <div class="freq-percent-text">5.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.5</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.8</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">Other Values(13)</td>
+            <td class="freq-count">34</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:22.666666666666664%;"></div>
+                <div class="freq-percent-text">22.7%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                    </div>
+
+                    <div class="tab-content" id="extreme-sepal_width">
+
+                        
+
+                        <div class="tabs inner-tabs">
+                            <button class="inner-tab-button active" data-inner-tab="extreme-min-sepal_width">Minimum Values</button>
+                            <button class="inner-tab-button" data-inner-tab="extreme-max-sepal_width">Maximum Values</button>
+                        </div>
+    
+                        <div class="inner-tab-content active" id="extreme-min-sepal_width">
+                            
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">2.0</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.2</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.3</td>
+            <td class="freq-count">4</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.666666666666667%;"></div>
+                <div class="freq-percent-text">2.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.4</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.5</td>
+            <td class="freq-count">8</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:5.333333333333334%;"></div>
+                <div class="freq-percent-text">5.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.6</td>
+            <td class="freq-count">5</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:3.3333333333333335%;"></div>
+                <div class="freq-percent-text">3.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.7</td>
+            <td class="freq-count">9</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:6.0%;"></div>
+                <div class="freq-percent-text">6.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.8</td>
+            <td class="freq-count">14</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:9.333333333333334%;"></div>
+                <div class="freq-percent-text">9.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.9</td>
+            <td class="freq-count">10</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:6.666666666666667%;"></div>
+                <div class="freq-percent-text">6.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.0</td>
+            <td class="freq-count">26</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:17.333333333333336%;"></div>
+                <div class="freq-percent-text">17.3%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+
+                        <div class="inner-tab-content" id="extreme-max-sepal_width">
+                            
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">4.4</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.2</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.1</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.0</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.9</td>
+            <td class="freq-count">2</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:1.3333333333333335%;"></div>
+                <div class="freq-percent-text">1.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.8</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.7</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.6</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.5</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.4</td>
+            <td class="freq-count">12</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.0%;"></div>
+                <div class="freq-percent-text">8.0%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+
+                    
+ 
+                    </div>
+
+                </div>
+
+            </div>
+            
+            <div class="section-box variable-box anchor-target" id="v-petal_length">
+                <div class="variable-title">petal_length</div>
+                <div class="variable-type">Real Number</div>
+                
+            <div class='value-grey'>High Correlation</div>
+            
+                <div class="row-flex">
+                    
+    <div class="table-wrapper table-w3">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Distinct</td><td class='value'>43</td></tr><tr><td class='label'>Distinct (%)</td><td class='value'>28.67%</td></tr><tr><td class='label'>Missing</td><td class='value'>0</td></tr><tr><td class='label'>Missing (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Infinite</td><td class='value'>0</td></tr><tr><td class='label'>Infinite (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Mean</td><td class='value'>3.76</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                    
+    <div class="table-wrapper table-w3">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Minimum</td><td class='value'>1.0</td></tr><tr><td class='label'>Maximum</td><td class='value'>6.9</td></tr><tr><td class='label'>Zeros</td><td class='value'>0</td></tr><tr><td class='label'>Zeros (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Negative</td><td class='value'>0</td></tr><tr><td class='label'>Negative (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Memory size (KiB)</td><td class='value'>1.30</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                    <div class="graph-container-third">
+                        <img src="reports\hist_petal_length.png" alt="petal_length Histograph">
+                    </div>
+                </div>
+
+                <div class="details-toggle-row">
+                    <div class="more-details-btn" data-target="details-petal_length">
+                        More details
+                    </div>
+                </div>
+
+                <div class="details-panel" id="details-petal_length">
+        
+                    <div class="tabs details-tabs">
+                        <button class="tab-button active" data-tab="stats-petal_length">Statistics</button>
+                        <button class="tab-button" data-tab="common-petal_length">Common Values</button>
+                        <button class="tab-button" data-tab="extreme-petal_length">Extreme Values</button>
+                    </div>
+
+                    <div class="tab-content active" id="stats-petal_length">
+                        <div class="row-flex">
+                            
+    <div class="table-wrapper table-w2">
+        <div class="table-title">Quantile Statistics</div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Minimum</td><td class='value'>1.0</td></tr><tr><td class='label'>5-th percentile</td><td class='value'>1.3</td></tr><tr><td class='label'>Q1</td><td class='value'>1.6</td></tr><tr><td class='label'>Median</td><td class='value'>4.35</td></tr><tr><td class='label'>Q3</td><td class='value'>5.1</td></tr><tr><td class='label'>95-th percentile</td><td class='value'>6.1</td></tr><tr><td class='label'>Maximum</td><td class='value'>6.9</td></tr><tr><td class='label'>Range</td><td class='value'>5.9</td></tr><tr><td class='label'>Interquartile range (IQR)</td><td class='value'>3.4999999999999996</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                            
+    <div class="table-wrapper table-w2">
+        <div class="table-title">Descriptive Statistics</div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Standard deviation</td><td class='value'>1.7644204199522626</td></tr><tr><td class='label'>Coefficient of variation (CV)</td><td class='value'>0.46942721353820405</td></tr><tr><td class='label'>Kurtosis</td><td class='value'>-1.4019208006454036</td></tr><tr><td class='label'>Mean</td><td class='value'>3.758666666666666</td></tr><tr><td class='label'>Median Absolute Deviation (MAD)</td><td class='value'>1.25</td></tr><tr><td class='label'>Skewness</td><td class='value'>-0.27446425247378287</td></tr><tr><td class='label'>Sum</td><td class='value'>563.8</td></tr><tr><td class='label'>Variance</td><td class='value'>3.113179418344519</td></tr><tr><td class='label'>Monotonicity</td><td class='value'>none</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="common-petal_length">
+                        
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">1.5</td>
+            <td class="freq-count">14</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:9.333333333333334%;"></div>
+                <div class="freq-percent-text">9.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.4</td>
+            <td class="freq-count">12</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.0%;"></div>
+                <div class="freq-percent-text">8.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.5</td>
+            <td class="freq-count">8</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:5.333333333333334%;"></div>
+                <div class="freq-percent-text">5.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.1</td>
+            <td class="freq-count">8</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:5.333333333333334%;"></div>
+                <div class="freq-percent-text">5.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.3</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.6</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.6</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.7</td>
+            <td class="freq-count">5</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:3.3333333333333335%;"></div>
+                <div class="freq-percent-text">3.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.9</td>
+            <td class="freq-count">5</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:3.3333333333333335%;"></div>
+                <div class="freq-percent-text">3.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">4.0</td>
+            <td class="freq-count">5</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:3.3333333333333335%;"></div>
+                <div class="freq-percent-text">3.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">Other Values(33)</td>
+            <td class="freq-count">73</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:48.66666666666667%;"></div>
+                <div class="freq-percent-text">48.7%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                    </div>
+
+                    <div class="tab-content" id="extreme-petal_length">
+
+                        
+
+                        <div class="tabs inner-tabs">
+                            <button class="inner-tab-button active" data-inner-tab="extreme-min-petal_length">Minimum Values</button>
+                            <button class="inner-tab-button" data-inner-tab="extreme-max-petal_length">Maximum Values</button>
+                        </div>
+    
+                        <div class="inner-tab-content active" id="extreme-min-petal_length">
+                            
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">1.0</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.1</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.2</td>
+            <td class="freq-count">2</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:1.3333333333333335%;"></div>
+                <div class="freq-percent-text">1.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.3</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.4</td>
+            <td class="freq-count">12</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.0%;"></div>
+                <div class="freq-percent-text">8.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.5</td>
+            <td class="freq-count">14</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:9.333333333333334%;"></div>
+                <div class="freq-percent-text">9.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.6</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.7</td>
+            <td class="freq-count">4</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.666666666666667%;"></div>
+                <div class="freq-percent-text">2.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.9</td>
+            <td class="freq-count">2</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:1.3333333333333335%;"></div>
+                <div class="freq-percent-text">1.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">3.0</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+
+                        <div class="inner-tab-content" id="extreme-max-petal_length">
+                            
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">6.9</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.7</td>
+            <td class="freq-count">2</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:1.3333333333333335%;"></div>
+                <div class="freq-percent-text">1.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.6</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.4</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.3</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.1</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">6.0</td>
+            <td class="freq-count">2</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:1.3333333333333335%;"></div>
+                <div class="freq-percent-text">1.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.9</td>
+            <td class="freq-count">2</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:1.3333333333333335%;"></div>
+                <div class="freq-percent-text">1.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.8</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">5.7</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+
+                    
+ 
+                    </div>
+
+                </div>
+
+            </div>
+            
+            <div class="section-box variable-box anchor-target" id="v-petal_width">
+                <div class="variable-title">petal_width</div>
+                <div class="variable-type">Real Number</div>
+                
+            <div class='value-grey'>High Correlation</div>
+            
+                <div class="row-flex">
+                    
+    <div class="table-wrapper table-w3">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Distinct</td><td class='value'>22</td></tr><tr><td class='label'>Distinct (%)</td><td class='value'>14.67%</td></tr><tr><td class='label'>Missing</td><td class='value'>0</td></tr><tr><td class='label'>Missing (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Infinite</td><td class='value'>0</td></tr><tr><td class='label'>Infinite (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Mean</td><td class='value'>1.20</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                    
+    <div class="table-wrapper table-w3">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Minimum</td><td class='value'>0.1</td></tr><tr><td class='label'>Maximum</td><td class='value'>2.5</td></tr><tr><td class='label'>Zeros</td><td class='value'>0</td></tr><tr><td class='label'>Zeros (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Negative</td><td class='value'>0</td></tr><tr><td class='label'>Negative (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Memory size (KiB)</td><td class='value'>1.30</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                    <div class="graph-container-third">
+                        <img src="reports\hist_petal_width.png" alt="petal_width Histograph">
+                    </div>
+                </div>
+
+                <div class="details-toggle-row">
+                    <div class="more-details-btn" data-target="details-petal_width">
+                        More details
+                    </div>
+                </div>
+
+                <div class="details-panel" id="details-petal_width">
+        
+                    <div class="tabs details-tabs">
+                        <button class="tab-button active" data-tab="stats-petal_width">Statistics</button>
+                        <button class="tab-button" data-tab="common-petal_width">Common Values</button>
+                        <button class="tab-button" data-tab="extreme-petal_width">Extreme Values</button>
+                    </div>
+
+                    <div class="tab-content active" id="stats-petal_width">
+                        <div class="row-flex">
+                            
+    <div class="table-wrapper table-w2">
+        <div class="table-title">Quantile Statistics</div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Minimum</td><td class='value'>0.1</td></tr><tr><td class='label'>5-th percentile</td><td class='value'>0.2</td></tr><tr><td class='label'>Q1</td><td class='value'>0.3</td></tr><tr><td class='label'>Median</td><td class='value'>1.3</td></tr><tr><td class='label'>Q3</td><td class='value'>1.8</td></tr><tr><td class='label'>95-th percentile</td><td class='value'>2.3</td></tr><tr><td class='label'>Maximum</td><td class='value'>2.5</td></tr><tr><td class='label'>Range</td><td class='value'>2.4</td></tr><tr><td class='label'>Interquartile range (IQR)</td><td class='value'>1.5</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                            
+    <div class="table-wrapper table-w2">
+        <div class="table-title">Descriptive Statistics</div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Standard deviation</td><td class='value'>0.7631607417008411</td></tr><tr><td class='label'>Coefficient of variation (CV)</td><td class='value'>0.63667470108524</td></tr><tr><td class='label'>Kurtosis</td><td class='value'>-1.3397541711393433</td></tr><tr><td class='label'>Mean</td><td class='value'>1.1986666666666668</td></tr><tr><td class='label'>Median Absolute Deviation (MAD)</td><td class='value'>0.7</td></tr><tr><td class='label'>Skewness</td><td class='value'>-0.10499656214412734</td></tr><tr><td class='label'>Sum</td><td class='value'>179.8</td></tr><tr><td class='label'>Variance</td><td class='value'>0.582414317673378</td></tr><tr><td class='label'>Monotonicity</td><td class='value'>none</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="common-petal_width">
+                        
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">0.2</td>
+            <td class="freq-count">28</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:18.666666666666668%;"></div>
+                <div class="freq-percent-text">18.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.3</td>
+            <td class="freq-count">13</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.666666666666668%;"></div>
+                <div class="freq-percent-text">8.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.5</td>
+            <td class="freq-count">12</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.0%;"></div>
+                <div class="freq-percent-text">8.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.8</td>
+            <td class="freq-count">12</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.0%;"></div>
+                <div class="freq-percent-text">8.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.4</td>
+            <td class="freq-count">8</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:5.333333333333334%;"></div>
+                <div class="freq-percent-text">5.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.3</td>
+            <td class="freq-count">8</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:5.333333333333334%;"></div>
+                <div class="freq-percent-text">5.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">0.4</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">0.3</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.0</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">0.1</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">Other Values(12)</td>
+            <td class="freq-count">42</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:28.000000000000004%;"></div>
+                <div class="freq-percent-text">28.0%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                    </div>
+
+                    <div class="tab-content" id="extreme-petal_width">
+
+                        
+
+                        <div class="tabs inner-tabs">
+                            <button class="inner-tab-button active" data-inner-tab="extreme-min-petal_width">Minimum Values</button>
+                            <button class="inner-tab-button" data-inner-tab="extreme-max-petal_width">Maximum Values</button>
+                        </div>
+    
+                        <div class="inner-tab-content active" id="extreme-min-petal_width">
+                            
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">0.1</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">0.2</td>
+            <td class="freq-count">28</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:18.666666666666668%;"></div>
+                <div class="freq-percent-text">18.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">0.3</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">0.4</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">0.5</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">0.6</td>
+            <td class="freq-count">1</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:0.6666666666666667%;"></div>
+                <div class="freq-percent-text">0.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.0</td>
+            <td class="freq-count">7</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.666666666666667%;"></div>
+                <div class="freq-percent-text">4.7%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.1</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.2</td>
+            <td class="freq-count">5</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:3.3333333333333335%;"></div>
+                <div class="freq-percent-text">3.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.3</td>
+            <td class="freq-count">13</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.666666666666668%;"></div>
+                <div class="freq-percent-text">8.7%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+
+                        <div class="inner-tab-content" id="extreme-max-petal_width">
+                            
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">2.5</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.4</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.3</td>
+            <td class="freq-count">8</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:5.333333333333334%;"></div>
+                <div class="freq-percent-text">5.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.2</td>
+            <td class="freq-count">3</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.0%;"></div>
+                <div class="freq-percent-text">2.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.1</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">2.0</td>
+            <td class="freq-count">6</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:4.0%;"></div>
+                <div class="freq-percent-text">4.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.9</td>
+            <td class="freq-count">5</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:3.3333333333333335%;"></div>
+                <div class="freq-percent-text">3.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.8</td>
+            <td class="freq-count">12</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:8.0%;"></div>
+                <div class="freq-percent-text">8.0%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.7</td>
+            <td class="freq-count">2</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:1.3333333333333335%;"></div>
+                <div class="freq-percent-text">1.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">1.6</td>
+            <td class="freq-count">4</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:2.666666666666667%;"></div>
+                <div class="freq-percent-text">2.7%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+                        </div>
+
+                    
+ 
+                    </div>
+
+                </div>
+
+            </div>
+            
+            <div class="section-box variable-box anchor-target" id="v-species">
+                <div class="variable-title">species</div>
+                <div class="variable-type">Categorical</div>
+                
+            <div class='value-grey'>High Correlation</div>
+            
+                <div class="row-flex">
+                        
+    <div class="table-wrapper table-w2">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table>
+                <tr><td class='label'>Distinct</td><td class='value'>3</td></tr><tr><td class='label'>Distinct (%)</td><td class='value'>2.00%</td></tr><tr><td class='label'>Missing</td><td class='value'>0</td></tr><tr><td class='label'>Missing (%)</td><td class='value'>0.00%</td></tr><tr><td class='label'>Memory size (KiB)</td><td class='value'>2.52</td></tr>
+            </table>
+        </div>
+    </div>
+    
+                        <div class="graph-container">
+                            <img src="reports\cat_species.png" alt="species Histograph">
+                        </div>
+                </div>
+                <div class="details-toggle-row">
+                    <div class="more-details-btn" data-target="details-species">
+                        More details
+                    </div>
+                </div>
+
+                <div class="details-panel" id="details-species">
+
+                    
+    <div class="table-wrapper table-w1">
+        <div class="table-title"></div>
+        <div class="table-box">
+            <table class="freq-table">
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td class="freq-value">setosa</td>
+            <td class="freq-count">50</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:33.33333333333333%;"></div>
+                <div class="freq-percent-text">33.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">versicolor</td>
+            <td class="freq-count">50</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:33.33333333333333%;"></div>
+                <div class="freq-percent-text">33.3%</div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="freq-value">virginica</td>
+            <td class="freq-count">50</td>
+            <td class="freq-bar-cell">
+                <div class="freq-bar" style="width:33.33333333333333%;"></div>
+                <div class="freq-percent-text">33.3%</div>
+            </td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+              
+                </div>
+
+
+            </div>
+            
+    </div>
+    
+    <div class="section anchor-target" id="interactions">
+        <div class="section-title">Interactions</div>
+
+        <div class="section-box interactions-box">
+            <div class="interactions-tabs">
+                
+            <button class="interactions-tab-button interactions-tab-button-active" data-interactions-tab="interact-sepal_length">
+                sepal_length
+            </button>
+        
+            <button class="interactions-tab-button " data-interactions-tab="interact-sepal_width">
+                sepal_width
+            </button>
+        
+            <button class="interactions-tab-button " data-interactions-tab="interact-petal_length">
+                petal_length
+            </button>
+        
+            <button class="interactions-tab-button " data-interactions-tab="interact-petal_width">
+                petal_width
+            </button>
+        
+            </div>
+            <div class="interactions-tab-contents">
+                
+            <div class="interactions-tab-content interactions-tab-content-active" id="interact-sepal_length">
+                <div class="section-box interactions-inner-box">
+                    <div class="interactions-subtabs">
+                        
+                <button class="interactions-subtab-button interactions-subtab-button-active" data-interactions-subtab="interact-sepal_length-sepal_length">
+                    sepal_length
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-sepal_length-sepal_width">
+                    sepal_width
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-sepal_length-petal_length">
+                    petal_length
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-sepal_length-petal_width">
+                    petal_width
+                </button>
+            
+                    </div>
+                    <div class="interactions-subtab-contents">
+                        
+                <div class="interactions-subtab-content interactions-subtab-content-active" id="interact-sepal_length-sepal_length">
+                    <div class="graph-container">
+                        <img src="reports\scatter_sepal_length_vs_sepal_length.png" alt="Scatter sepal_length vs sepal_length">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-sepal_length-sepal_width">
+                    <div class="graph-container">
+                        <img src="reports\scatter_sepal_length_vs_sepal_width.png" alt="Scatter sepal_length vs sepal_width">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-sepal_length-petal_length">
+                    <div class="graph-container">
+                        <img src="reports\scatter_sepal_length_vs_petal_length.png" alt="Scatter sepal_length vs petal_length">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-sepal_length-petal_width">
+                    <div class="graph-container">
+                        <img src="reports\scatter_sepal_length_vs_petal_width.png" alt="Scatter sepal_length vs petal_width">
+                    </div>
+                </div>
+            
+                    </div>
+                </div>
+            </div>
+        
+            <div class="interactions-tab-content " id="interact-sepal_width">
+                <div class="section-box interactions-inner-box">
+                    <div class="interactions-subtabs">
+                        
+                <button class="interactions-subtab-button interactions-subtab-button-active" data-interactions-subtab="interact-sepal_width-sepal_length">
+                    sepal_length
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-sepal_width-sepal_width">
+                    sepal_width
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-sepal_width-petal_length">
+                    petal_length
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-sepal_width-petal_width">
+                    petal_width
+                </button>
+            
+                    </div>
+                    <div class="interactions-subtab-contents">
+                        
+                <div class="interactions-subtab-content interactions-subtab-content-active" id="interact-sepal_width-sepal_length">
+                    <div class="graph-container">
+                        <img src="reports\scatter_sepal_width_vs_sepal_length.png" alt="Scatter sepal_width vs sepal_length">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-sepal_width-sepal_width">
+                    <div class="graph-container">
+                        <img src="reports\scatter_sepal_width_vs_sepal_width.png" alt="Scatter sepal_width vs sepal_width">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-sepal_width-petal_length">
+                    <div class="graph-container">
+                        <img src="reports\scatter_sepal_width_vs_petal_length.png" alt="Scatter sepal_width vs petal_length">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-sepal_width-petal_width">
+                    <div class="graph-container">
+                        <img src="reports\scatter_sepal_width_vs_petal_width.png" alt="Scatter sepal_width vs petal_width">
+                    </div>
+                </div>
+            
+                    </div>
+                </div>
+            </div>
+        
+            <div class="interactions-tab-content " id="interact-petal_length">
+                <div class="section-box interactions-inner-box">
+                    <div class="interactions-subtabs">
+                        
+                <button class="interactions-subtab-button interactions-subtab-button-active" data-interactions-subtab="interact-petal_length-sepal_length">
+                    sepal_length
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-petal_length-sepal_width">
+                    sepal_width
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-petal_length-petal_length">
+                    petal_length
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-petal_length-petal_width">
+                    petal_width
+                </button>
+            
+                    </div>
+                    <div class="interactions-subtab-contents">
+                        
+                <div class="interactions-subtab-content interactions-subtab-content-active" id="interact-petal_length-sepal_length">
+                    <div class="graph-container">
+                        <img src="reports\scatter_petal_length_vs_sepal_length.png" alt="Scatter petal_length vs sepal_length">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-petal_length-sepal_width">
+                    <div class="graph-container">
+                        <img src="reports\scatter_petal_length_vs_sepal_width.png" alt="Scatter petal_length vs sepal_width">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-petal_length-petal_length">
+                    <div class="graph-container">
+                        <img src="reports\scatter_petal_length_vs_petal_length.png" alt="Scatter petal_length vs petal_length">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-petal_length-petal_width">
+                    <div class="graph-container">
+                        <img src="reports\scatter_petal_length_vs_petal_width.png" alt="Scatter petal_length vs petal_width">
+                    </div>
+                </div>
+            
+                    </div>
+                </div>
+            </div>
+        
+            <div class="interactions-tab-content " id="interact-petal_width">
+                <div class="section-box interactions-inner-box">
+                    <div class="interactions-subtabs">
+                        
+                <button class="interactions-subtab-button interactions-subtab-button-active" data-interactions-subtab="interact-petal_width-sepal_length">
+                    sepal_length
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-petal_width-sepal_width">
+                    sepal_width
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-petal_width-petal_length">
+                    petal_length
+                </button>
+            
+                <button class="interactions-subtab-button " data-interactions-subtab="interact-petal_width-petal_width">
+                    petal_width
+                </button>
+            
+                    </div>
+                    <div class="interactions-subtab-contents">
+                        
+                <div class="interactions-subtab-content interactions-subtab-content-active" id="interact-petal_width-sepal_length">
+                    <div class="graph-container">
+                        <img src="reports\scatter_petal_width_vs_sepal_length.png" alt="Scatter petal_width vs sepal_length">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-petal_width-sepal_width">
+                    <div class="graph-container">
+                        <img src="reports\scatter_petal_width_vs_sepal_width.png" alt="Scatter petal_width vs sepal_width">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-petal_width-petal_length">
+                    <div class="graph-container">
+                        <img src="reports\scatter_petal_width_vs_petal_length.png" alt="Scatter petal_width vs petal_length">
+                    </div>
+                </div>
+            
+                <div class="interactions-subtab-content " id="interact-petal_width-petal_width">
+                    <div class="graph-container">
+                        <img src="reports\scatter_petal_width_vs_petal_width.png" alt="Scatter petal_width vs petal_width">
+                    </div>
+                </div>
+            
+                    </div>
+                </div>
+            </div>
+        
+            </div>
+        </div>
+    </div>
+    
+    <div class="section anchor-target" id="correlations">
+        <div class="section-title">Correlations</div>
+
+        <div class="section-box">
+
+            <div class="tabs">
+                <button class="tab-button active" data-tab="heatmap">Heatmap</button>
+                <button class="tab-button" data-tab="corrtable">Table</button>
+            </div>
+
+            <div class="tab-content active" id="heatmap">
+                <div class="graph-container">
+                    <img src="reports\correlation_heatmap.png" alt="Graph">
+                </div>
+            </div>
+
+            <div class="tab-content" id="corrtable">
+                <div class="table-wrapper table-w1">
+                    <div class="table-title">Correlation Matrix</div>
+
+                    <div class="table-box scroll-x">
+                        <table class="df-head-table">
+                            <thead>
+                                <tr><th class='index-col'>Column</th><th>sepal_length</th><th>sepal_width</th><th>petal_length</th><th>petal_width</th><th>species</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class='index-col'>sepal_length</td><td>1.00</td><td>-0.11</td><td>0.87</td><td>0.82</td><td>0.79</td></tr><tr><td class='index-col'>sepal_width</td><td>-0.11</td><td>1.00</td><td>-0.42</td><td>-0.36</td><td>0.63</td></tr><tr><td class='index-col'>petal_length</td><td>0.87</td><td>-0.42</td><td>1.00</td><td>0.96</td><td>0.97</td></tr><tr><td class='index-col'>petal_width</td><td>0.82</td><td>-0.36</td><td>0.96</td><td>1.00</td><td>0.96</td></tr><tr><td class='index-col'>species</td><td>0.79</td><td>0.63</td><td>0.97</td><td>0.96</td><td>1.00</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    
+    <div class="section anchor-target" id="sample">
+        <div class="section-title">Sample</div>
+
+        <div class="section-box">
+
+            <div class="tabs">
+                <button class="tab-button active" data-tab="first_sample">First 10</button>
+                <button class="tab-button" data-tab="last_sample">Last 10</button>
+            </div>
+
+            <div class="tab-content active" id="first_sample">
+                
+        <div class="table-wrapper table-w1">
+        
+            <div class="table-box scroll-x">
+                <table class="df-head-table">
+                    <thead>
+                        <tr><th class='index-col'>Index</th><th>sepal_length</th><th>sepal_width</th><th>petal_length</th><th>petal_width</th><th>species</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class='index-col'>0</td><td>5.1</td><td>3.5</td><td>1.4</td><td>0.2</td><td>setosa</td></tr><tr><td class='index-col'>1</td><td>4.9</td><td>3.0</td><td>1.4</td><td>0.2</td><td>setosa</td></tr><tr><td class='index-col'>2</td><td>4.7</td><td>3.2</td><td>1.3</td><td>0.2</td><td>setosa</td></tr><tr><td class='index-col'>3</td><td>4.6</td><td>3.1</td><td>1.5</td><td>0.2</td><td>setosa</td></tr><tr><td class='index-col'>4</td><td>5.0</td><td>3.6</td><td>1.4</td><td>0.2</td><td>setosa</td></tr><tr><td class='index-col'>5</td><td>5.4</td><td>3.9</td><td>1.7</td><td>0.4</td><td>setosa</td></tr><tr><td class='index-col'>6</td><td>4.6</td><td>3.4</td><td>1.4</td><td>0.3</td><td>setosa</td></tr><tr><td class='index-col'>7</td><td>5.0</td><td>3.4</td><td>1.5</td><td>0.2</td><td>setosa</td></tr><tr><td class='index-col'>8</td><td>4.4</td><td>2.9</td><td>1.4</td><td>0.2</td><td>setosa</td></tr><tr><td class='index-col'>9</td><td>4.9</td><td>3.1</td><td>1.5</td><td>0.1</td><td>setosa</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+            </div>
+
+
+            <div class="tab-content" id="last_sample">
+                
+        <div class="table-wrapper table-w1">
+        
+            <div class="table-box scroll-x">
+                <table class="df-head-table">
+                    <thead>
+                        <tr><th class='index-col'>Index</th><th>sepal_length</th><th>sepal_width</th><th>petal_length</th><th>petal_width</th><th>species</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class='index-col'>140</td><td>6.7</td><td>3.1</td><td>5.6</td><td>2.4</td><td>virginica</td></tr><tr><td class='index-col'>141</td><td>6.9</td><td>3.1</td><td>5.1</td><td>2.3</td><td>virginica</td></tr><tr><td class='index-col'>142</td><td>5.8</td><td>2.7</td><td>5.1</td><td>1.9</td><td>virginica</td></tr><tr><td class='index-col'>143</td><td>6.8</td><td>3.2</td><td>5.9</td><td>2.3</td><td>virginica</td></tr><tr><td class='index-col'>144</td><td>6.7</td><td>3.3</td><td>5.7</td><td>2.5</td><td>virginica</td></tr><tr><td class='index-col'>145</td><td>6.7</td><td>3.0</td><td>5.2</td><td>2.3</td><td>virginica</td></tr><tr><td class='index-col'>146</td><td>6.3</td><td>2.5</td><td>5.0</td><td>1.9</td><td>virginica</td></tr><tr><td class='index-col'>147</td><td>6.5</td><td>3.0</td><td>5.2</td><td>2.0</td><td>virginica</td></tr><tr><td class='index-col'>148</td><td>6.2</td><td>3.4</td><td>5.4</td><td>2.3</td><td>virginica</td></tr><tr><td class='index-col'>149</td><td>5.9</td><td>3.0</td><td>5.1</td><td>1.8</td><td>virginica</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+            </div>
+
+        </div>
+    </div>
+    
+</div>
+</body>
+
+    <script>
+
+document.addEventListener("click", function(e) {
+    if (!e.target.classList.contains("tab-button")) return;
+
+    const tabId = e.target.dataset.tab;
+
+    // Scope = the nearest .tabs container
+    const tabsContainer = e.target.closest(".tabs");
+
+    // Deactivate only buttons inside this tabs container
+    tabsContainer.querySelectorAll(".tab-button").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    // Activate clicked button
+    e.target.classList.add("active");
+
+    // Find the parent section-box that contains the content blocks
+    const sectionBox = tabsContainer.closest(".section-box");
+
+    // Deactivate only content blocks inside this section-box
+    sectionBox.querySelectorAll(".tab-content").forEach(cnt => {
+        cnt.classList.remove("active");
+    });
+
+    // Activate the matching content
+    const content = sectionBox.querySelector("#" + tabId);
+    if (content) content.classList.add("active");
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Top-level interactions tabs (col1)
+    const interactionsBox = document.querySelector(".interactions-box");
+    if (!interactionsBox) return;
+
+    const topButtons = interactionsBox.querySelectorAll(".interactions-tab-button");
+    const topContents = interactionsBox.querySelectorAll(".interactions-tab-content");
+
+    topButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const targetId = btn.dataset.interactionsTab;
+
+            // deactivate all top-level
+            topButtons.forEach(b => b.classList.remove("interactions-tab-button-active"));
+            topContents.forEach(c => c.classList.remove("interactions-tab-content-active"));
+
+            // activate clicked
+            btn.classList.add("interactions-tab-button-active");
+            const targetContent = interactionsBox.querySelector("#" + targetId);
+            if (targetContent) {
+                targetContent.classList.add("interactions-tab-content-active");
+
+                // inside this content, activate FIRST nested subtab by default
+                const nestedButtons = targetContent.querySelectorAll(".interactions-subtab-button");
+                const nestedContents = targetContent.querySelectorAll(".interactions-subtab-content");
+
+                nestedButtons.forEach(b => b.classList.remove("interactions-subtab-button-active"));
+                nestedContents.forEach(c => c.classList.remove("interactions-subtab-content-active"));
+
+                if (nestedButtons.length > 0 && nestedContents.length > 0) {
+                    nestedButtons[0].classList.add("interactions-subtab-button-active");
+                    nestedContents[0].classList.add("interactions-subtab-content-active");
+                }
+            }
+        });
+    });
+
+    // Nested interactions subtabs (col2)
+    interactionsBox.querySelectorAll(".interactions-tab-content").forEach(topContent => {
+        const nestedButtons = topContent.querySelectorAll(".interactions-subtab-button");
+        const nestedContents = topContent.querySelectorAll(".interactions-subtab-content");
+
+        nestedButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const targetId = btn.dataset.interactionsSubtab;
+
+                nestedButtons.forEach(b => b.classList.remove("interactions-subtab-button-active"));
+                nestedContents.forEach(c => c.classList.remove("interactions-subtab-content-active"));
+
+                btn.classList.add("interactions-subtab-button-active");
+                const targetContent = topContent.querySelector("#" + targetId);
+                if (targetContent) {
+                    targetContent.classList.add("interactions-subtab-content-active");
+                }
+            });
+        });
+    });
+});
+
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("more-details-btn")) {
+        const panelId = e.target.getAttribute("data-target");
+        const panel = document.getElementById(panelId);
+
+        // Toggle panel visibility
+        const isOpen = panel.classList.toggle("open");
+
+        // Update button text
+        e.target.textContent = isOpen ? "Less details" : "More details";
+    }
+});
+
+// Tab system that works for nested panels
+document.addEventListener("click", function(e) {
+    if (!e.target.classList.contains("tab-button")) return;
+
+    const tabId = e.target.getAttribute("data-tab");
+
+    // Scope: find nearest container that holds tab-content
+    const container = e.target.closest(".details-panel") || 
+                      e.target.closest(".section-box");
+
+    // Deactivate all tabs in this container
+    container.querySelectorAll(".tab-button").forEach(btn => {
+        btn.classList.remove("active");
+    });
+    container.querySelectorAll(".tab-content").forEach(tab => {
+        tab.classList.remove("active");
+    });
+
+    // Activate clicked tab + its content
+    e.target.classList.add("active");
+    container.querySelector("#" + tabId).classList.add("active");
+});
+
+// Inner tab system (Extreme Values)
+document.addEventListener("click", function(e) {
+    if (!e.target.classList.contains("inner-tab-button")) return;
+
+    const tabId = e.target.getAttribute("data-inner-tab");
+    if (!tabId) return;
+
+    // Scope: nearest inner-tabs container
+    const tabsContainer = e.target.closest(".inner-tabs");
+    if (!tabsContainer) return;
+
+    // Content scope: parent that holds inner-tabs + inner-tab-content
+    const contentScope = tabsContainer.parentElement;
+
+    // Deactivate all inner buttons in this group
+    tabsContainer.querySelectorAll(".inner-tab-button").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    // Deactivate all inner contents in this scope
+    contentScope.querySelectorAll(".inner-tab-content").forEach(tab => {
+        tab.classList.remove("active");
+    });
+
+    // Activate clicked button
+    e.target.classList.add("active");
+
+    // Activate matching content
+    const targetContent = contentScope.querySelector("#" + tabId);
+    if (targetContent) {
+        targetContent.classList.add("active");
+    }
+});
+
+
+</script>
+</html>

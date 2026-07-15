@@ -2,14 +2,14 @@ from pathlib import Path
 from typing import Dict
 from .style_string import style_string
 from .script_string import script_string
-from .overview import build_overview_section
-from .variables import build_variables_section
-from .interactions import build_interactions_section
-from .correlations import build_correlations_section
-from .missing import build_missing_section
-from .sample import build_sample_section
+from .sections.overview import build_overview_section
+from .sections.variables import build_variables_section
+from .sections.interactions import build_interactions_section
+from .sections.correlations import build_correlations_section
+from .sections.missing import build_missing_section
+from .sections.sample import build_sample_section
 
-def build_html_report(profile: Dict, output_dir: str) -> str:
+def build_html_report(profile: Dict, output_dir: str, path="") -> str:
     """
     Generate a full HTML EDA report with:
     - Header navigation
@@ -18,6 +18,13 @@ def build_html_report(profile: Dict, output_dir: str) -> str:
     """
 
     output_dir = Path(output_dir)
+    if path == "":
+        dataset_name = ""
+    else: 
+        dataset_name = path.removesuffix(".csv")
+        if "/" in dataset_name:
+            dataset_name = dataset_name.split("/")[-1]
+
 
     html = f"""
 <!DOCTYPE html>
@@ -32,6 +39,7 @@ def build_html_report(profile: Dict, output_dir: str) -> str:
 <body>
 
 <div class="header">
+    <div class="dataset-name">{dataset_name} Dataset</div>
     <div class="header-content">
         <a class="nav-link" href="#overview">Overview</a>
         <a class="nav-link" href="#variables">Variables</a>

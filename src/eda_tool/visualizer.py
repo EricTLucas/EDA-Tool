@@ -4,8 +4,6 @@ from matplotlib.patches import Rectangle
 import seaborn as sns
 from wordcloud import WordCloud
 from pathlib import Path
-from matplotlib.colors import ListedColormap
-
 
 def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = None):
     """

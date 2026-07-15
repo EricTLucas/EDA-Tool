@@ -13,18 +13,14 @@ def analyze(path_or_object, output_dir=r"figures", open_html=True):
     print("Dataset Profiling Complete")
     visualize_dataset(df, results, output_dir)
     print("Dataset Visuals Complete")
-    html = build_html_report(results, output_dir)
+    html = build_html_report(results, output_dir, path_or_object)
     print("HTML Report Generated")
 
     with open("eda_report.html", "w", encoding="utf-8") as f:
         f.write(html)
-
+    
     if open_html:
-        ("eda_report.html")
+        url = "file://" + os.path.abspath("eda_report.html")
+        webbrowser.open(url)
 
     return df, profile
-
-
-def open_html(path):
-    url = "file://" + os.path.abspath(path)
-    webbrowser.open(url)

@@ -1,7 +1,6 @@
 import pandas as pd
 from pathlib import Path
 from io import BytesIO
-import pyarrow.parquet as pq
 import pyarrow.feather as feather
 import pyarrow.orc as orc
 import pyarrow.ipc as ipc

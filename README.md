@@ -1,40 +1,20 @@
 # Exploratory Data Analysis Tool
-*A lightweight, modular exploratory data analysis pipeline with automatic HTML report generation.*
 
----
+A lightweight, fast, and fully automated Exploratory Data Analysis (EDA) generator.  
+Provide a dataset → receive a complete HTML report with summaries, statistics, plots, and value analysis.
 
 ## Features
 
-- Automatic dataset loading (CSV or folder)
-- Column profiling:
-  - Numeric summaries
-  - Categorical summaries
-  - Memory usage
-  - Missing value detection
-- Visualizations:
-  - Histograms
-  - Bar charts
-  - Interaction plots
-  - Missingness matrix
-- Full HTML report generation:
-  - Variables section
-  - Interactions section
-  - Summary tables
-  - Embedded graphs
-- Command‑line interface (CLI):
-  - One command to run the entire pipeline
-  - Optional output directory
-  - Optional auto‑open HTML report
-- Modular architecture:
-  - Loader → Profiler → Visualizer → HTML Generator → Pipeline
-- Test suite included
+- One‑command CLI (`eda <file.csv>`)
+- Clean, interactive HTML report
+- Summary statistics
+- Common & extreme value analysis
+- Histograms and distribution plots
+- Missing value detection
+- Modular component-based architecture
 
----
-
-## Installation
-
-Clone the repository:
+## Example
 
 ```bash
-git clone https://github.com/EricTLucas/eda-tool
-cd eda-tool
+eda iris.csv --out reports/
+

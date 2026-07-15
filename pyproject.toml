@@ -1,6 +1,6 @@
 [project]
 name = "eda_tool"
-version = "0.1.4"
+version = "0.1.6"
 description = "A lightweight EDA pipeline with HTML report generation"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -8,6 +8,10 @@ dependencies = [
     "pandas",
     "numpy",
     "matplotlib",
+    "scipy", 
+    "seaborn",
+    "wordcloud",
+    "pyarrow"
 ]
 
 # This exposes your CLI as a real command
