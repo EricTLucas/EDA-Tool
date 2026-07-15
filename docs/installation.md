@@ -11,6 +11,7 @@
 ```bash
 git clone https://github.com/EricTLucas/EDA-Automation-Tool.git
 cd EDA-Automation-Tool
+```
 
 ## 2. Create a virtual environment (recommended)
 
@@ -18,11 +19,13 @@ cd EDA-Automation-Tool
 python -m venv venv
 source venv/bin/activate   # macOS / Linux
 venv\Scripts\activate      # Windows
+```
 
 ## 3. Install the package
 
 ```bash
 pip install -e .
+```
 
 This installs the EDA tool along with all required dependencies defined in pyproject.toml.
 
@@ -30,6 +33,7 @@ This installs the EDA tool along with all required dependencies defined in pypro
 
 ```bash
 eda --help
+```
 
 You should see the CLI usage message.
 
@@ -37,6 +41,7 @@ You should see the CLI usage message.
 
 ```bash
 eda tests/sample_files/iris.csv --out reports/
+```
 
 Open:
 reports/iris_report.html
