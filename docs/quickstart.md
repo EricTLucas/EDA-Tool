@@ -10,7 +10,7 @@ Use any CSV file, for example:
 
 ## 2. Run the CLI
 
-bash
+```bash
 eda tests/sample_files/iris.csv --out reports/
 
 ## 3. Open the report

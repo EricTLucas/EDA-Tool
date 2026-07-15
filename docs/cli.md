@@ -4,7 +4,7 @@ The CLI provides a simple way to generate EDA reports.
 
 ## Usage
 
-bash
+```bash
 eda <input_file> [options]
 
 ## Arguments
@@ -18,4 +18,5 @@ input_file : path to a csv file
 
 ## Examples
 
+```bash
 eda iris.csv --out /output --no-open
