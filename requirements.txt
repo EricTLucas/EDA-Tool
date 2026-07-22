@@ -7,3 +7,4 @@ wordcloud
 pyarrow
 fastapi
 gunicorn
+-e .
