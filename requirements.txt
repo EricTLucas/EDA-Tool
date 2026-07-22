@@ -5,6 +5,7 @@ matplotlib
 seaborn
 wordcloud
 pyarrow
+python-multipart
 fastapi
 gunicorn
 -e .
