@@ -7,6 +7,17 @@ import os
 
 app = FastAPI()
 
+@app.get("/")
+async def home():
+    return HTMLResponse("""
+        <html>
+            <body>
+                <h2>EDA Automation Tool</h2>
+                <p><a href="/upload">Upload a CSV file</a></p>
+            </body>
+        </html>
+    """)
+
 @app.get("/upload")
 async def upload_form():
     return HTMLResponse("""
