@@ -1,6 +1,6 @@
 [project]
 name = "eda_tool"
-version = "0.1.0"
+version = "0.1.1"
 description = "A lightweight EDA pipeline with HTML report generation"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -11,7 +11,8 @@ dependencies = [
     "scipy", 
     "seaborn",
     "wordcloud",
-    "pyarrow"
+    "pyarrow",
+    "fastapi"
 ]
 
 [project.scripts]

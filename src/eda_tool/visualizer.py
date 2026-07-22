@@ -1,11 +1,13 @@
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import seaborn as sns
 from wordcloud import WordCloud
 from pathlib import Path
+matplotlib.use("Agg")
 
-def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = None):
+def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str):
     """
     Generate a full suite of visualizations for a dataset using its profile.
 
@@ -24,7 +26,7 @@ def visualize_dataset(df: pd.DataFrame, profile: dict, output_dir: str | None = 
             - Word cloud
 
     """
-
+    
     figures = []
 
     pairs = profile['interactions'].data['pairs']
@@ -404,4 +406,4 @@ def _handle_output(fig, output_dir, name: str):
         fig.savefig(f"{output_dir}/{name}.png", bbox_inches="tight")
         plt.close(fig)
     else:
-        plt.show()
+        plt.close(fig)
