@@ -40,6 +40,7 @@ async def upload_csv(file: UploadFile = File(...)):
         tmp_path = tmp.name
 
     output_dir = "plots"
+    os.makedirs(output_dir, exist_ok=True)
 
     app.mount("/plots", StaticFiles(directory=output_dir), name="plots")
 
