@@ -39,11 +39,11 @@ async def upload_csv(file: UploadFile = File(...)):
         tmp.write(await file.read())
         tmp_path = tmp.name
 
-    plot_dir = tempfile.mkdtemp()
+    output_dir = "plots"
 
-    app.mount("/plots", StaticFiles(directory=plot_dir), name="plots")
+    app.mount("/plots", StaticFiles(directory=output_dir), name="plots")
 
-    _ = build_html_report(tmp_path, output_dir="/plots")
+    _ = build_html_report(tmp_path, output_dir=output_dir)
 
     return HTMLResponse("""
         <html>
