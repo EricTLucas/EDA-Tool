@@ -8,4 +8,5 @@ pyarrow
 python-multipart
 fastapi
 gunicorn
+uvicorn
 -e .
