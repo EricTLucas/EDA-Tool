@@ -9,7 +9,7 @@ from .sections.correlations import build_correlations_section
 from .sections.missing import build_missing_section
 from .sections.sample import build_sample_section
 
-def build_html_report(profile: Dict, output_dir: str, path="") -> str:
+def generate_html(profile: Dict, output_dir: str, dataset_name) -> str:
     """
     Generate a full HTML EDA report with:
     - Header navigation
@@ -18,12 +18,7 @@ def build_html_report(profile: Dict, output_dir: str, path="") -> str:
     """
 
     output_dir = Path(output_dir)
-    if path == "":
-        dataset_name = ""
-    else: 
-        dataset_name = path.removesuffix(".csv")
-        if "/" in dataset_name:
-            dataset_name = dataset_name.split("/")[-1]
+    
 
 
     html = f"""

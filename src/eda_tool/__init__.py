@@ -1,1 +1,5 @@
 # package marker for src.eda_tool
+
+from .pipeline import build_html_report
+
+__all__ = ["build_html_report"]

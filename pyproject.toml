@@ -11,11 +11,9 @@ dependencies = [
     "scipy", 
     "seaborn",
     "wordcloud",
-    "pyarrow"
+    "pyarrow",
+    "fastapi"
 ]
 
 [project.scripts]
 eda = "eda_tool.cli:main"
-
-[tool.pytest.ini_options]
-pythonpath = ["src"]
