@@ -5,3 +5,5 @@ matplotlib
 seaborn
 wordcloud
 pyarrow
+python-multipart
+-e .
