@@ -40,7 +40,7 @@ You should see the CLI usage message.
 ## 5. Generate a test report
 
 ```bash
-eda tests/sample_files/iris.csv --out reports/
+eda examples/iris.csv --out reports/
 ```
 
 Open:
