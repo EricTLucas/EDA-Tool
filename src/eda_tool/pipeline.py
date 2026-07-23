@@ -20,14 +20,14 @@ def build_html_report(path_or_object, output_dir=r"/plots", open_html=True):
     html = generate_html(results, output_dir, dataset_name)
     print("HTML Report Generated")
 
-    with open("eda_report.html", "w", encoding="utf-8") as f:
-        f.write(html)
+    output_file = Path(output_dir) / "eda_report.html"
+    output_file.write_text(html, encoding="utf-8")
     
     if open_html:
         url = "file://" + os.path.abspath("eda_report.html")
         webbrowser.open(url)
     
-    return html
+    return output_file
 
 def determine_dataset_name(source):
    
