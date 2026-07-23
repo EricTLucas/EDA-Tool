@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from fastapi.concurrency import run_in_threadpool
 from eda_tool import build_html_report
 import tempfile
 import os
@@ -44,15 +45,18 @@ async def upload_csv(file: UploadFile = File(...)):
 
     app.mount("/plots", StaticFiles(directory=output_dir), name="plots")
 
-    _ = build_html_report(tmp_path, output_dir=output_dir)
+    # Run the heavy pipeline in a thread
+    html = await run_in_threadpool(build_html_report, tmp_path, output_dir)
 
-    return HTMLResponse("""
+    # Return a page that opens the report in a new tab
+    return HTMLResponse(f"""
         <html>
             <body>
                 <script>
-                    window.location.href = "/upload";
+                    window.open('/plots/{html}', '_blank');
+                    window.location.href = '/upload';
                 </script>
-                <p>Report generated in a new tab.</p>
+                <p>Report generated.</p>
             </body>
         </html>
     """)
