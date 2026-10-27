@@ -1,3 +1,3 @@
-from .generator import build_html_report
+from .generator import HtmlReport, build_html_report
 
-__all__ = ["build_html_report"]
+__all__ = ['HtmlReport', 'build_html_report']

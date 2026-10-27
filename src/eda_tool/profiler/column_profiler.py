@@ -1,270 +1,156 @@
-from .base import ProfilerComponent, SectionResult, register_component
-import pandas as pd
+"""Full-scan column aggregates plus explicitly labeled sample diagnostics."""
+from collections import Counter
 import numpy as np
-from collections import Counter 
+import pandas as pd
+from .base import ProfilerComponent, SectionResult, finite_values
+from .aggregations import Moments
+
+
+class ColumnState:
+    def __init__(self):
+        self.missing = self.infinity = self.zeros = self.negative = 0
+        self.memory = 0
+        self.moments = Moments()
+        self.lengths = Moments()
+        self.counts = Counter()
+        self.capped = False
+        self.first = self.last = None
+        self.increasing = self.decreasing = True
+        self.minimum = self.maximum = None
+        self.examples = []
+
 
 class ColumnProfiler(ProfilerComponent):
-    name = "columns"
+    name = 'columns'
 
-    def compute(self, df, profile):
-        num_rows = df.shape[0]
-        
-        numeric = ["int","int8", "int16", "int32", 
-               "int64", "uint8", "uint16", "float", 
-               "uint32", "uint64", "float16", 
-               "float32", "float64", "complex64", 
-               "complex128", "Int8", "Int16", 
-               "Int32", "Int64", "Float32", "Float64"]
+    def __init__(self, context):
+        super().__init__(context)
+        self.states = {}
 
-        text = ["bool", "boolean", "object", 
-                "string", "str", "bytes", 
-                "datetime64[ns]", "datetime64[ns, tz]", "timedelta64[ns]",
-                "category", "mixed"]
+    def update(self, batch):
+        for col in batch.columns:
+            state = self.states.setdefault(col, ColumnState())
+            series = batch[col]
+            role = self.context.roles[col]
+            state.missing += int(series.isna().sum())
+            state.memory += int(series.memory_usage(index=False, deep=True))
+            present = series.dropna()
+            for value in present:
+                try:
+                    hash(value)
+                except TypeError as exc:
+                    raise TypeError(f'{col}: nested values must be normalized before profiling') from exc
+                if len(state.examples) < 5 and value not in state.examples:
+                    state.examples.append(value)
+                if not state.capped:
+                    if value not in state.counts and len(state.counts) >= self.context.config.max_unique:
+                        state.capped = True
+                        state.counts.clear()
+                    else:
+                        state.counts[value] += 1
+            if role == 'numeric':
+                values = pd.to_numeric(series, errors='raise').to_numpy(dtype=float, na_value=np.nan)
+                state.infinity += int(np.isinf(values).sum())
+                finite = values[np.isfinite(values)]
+                state.zeros += int((finite == 0).sum())
+                state.negative += int((finite < 0).sum())
+                state.moments.update(finite)
+                if len(finite):
+                    state.increasing &= bool(np.all(finite[1:] >= finite[:-1]))
+                    state.decreasing &= bool(np.all(finite[1:] <= finite[:-1]))
+                    if state.last is not None:
+                        state.increasing &= bool(finite[0] >= state.last)
+                        state.decreasing &= bool(finite[0] <= state.last)
+                    state.last = float(finite[-1])
+            elif role in {'text', 'category'}:
+                state.lengths.update(np.array([len(str(x)) for x in present], dtype=float))
+            elif role in {'datetime', 'timedelta'}:
+                values = pd.to_datetime(present, errors='raise') if role == 'datetime' else pd.to_timedelta(present, errors='raise')
+                if len(values):
+                    lo, hi = values.min(), values.max()
+                    state.minimum = lo if state.minimum is None else min(state.minimum, lo)
+                    state.maximum = hi if state.maximum is None else max(state.maximum, hi)
 
-        
-        columns = {}
-
-
-
-        for col in df.columns:
-
-            series = df[col]
-            col_profile = {}
-
-            col_profile["dtype"] = str(series.dtype)
-
-            col_profile["num_missing"] = int(series.isna().sum())
-            col_profile["pct_missing"] = col_profile["num_missing"] / num_rows
-            col_profile["num_unique"] = int(series.nunique(dropna=True))
-            col_profile["pct_unique"] = col_profile["num_unique"] / num_rows
-            col_profile["sample_values"] = series.dropna().unique()[:5].tolist()
-            col_profile["memory_size"] = int(series.memory_usage(deep=True)) 
-            unique = col_profile["num_unique"]
-            if unique == df.shape[0]:
-                col_profile["cardinality"] = "id"
-            elif unique < 20:
-                col_profile["cardinality"] = "low"
-            elif unique < 1000:
-                col_profile["cardinality"] = "medium"
+    def finalize(self, results):
+        output = {}
+        rows = self.context.rows
+        config = self.context.config
+        sample_meta = self.context.sample_metadata()
+        for col, state in self.states.items():
+            role = self.context.roles[col]
+            sample = self.context.sample[col]
+            present = sample.dropna()
+            inferred_counts = self.context.category_counts.get(col)
+            capped = state.capped and not (role == 'category' and inferred_counts is not None)
+            counts = inferred_counts if role == 'category' and inferred_counts is not None else (Counter(present) if capped else state.counts)
+            denominator = len(sample) if capped else rows
+            common = [[value, count, count/denominator if denominator else 0.0]
+                      for value, count in counts.most_common(config.top_k)]
+            unique = None if capped else len(counts)
+            p = {'dtype': ', '.join(sorted(self.context.dtypes[col])), 'type': role,
+                 'num_missing': state.missing, 'pct_missing': state.missing/rows if rows else 0.0,
+                 'num_unique': unique, 'pct_unique': unique/rows if rows and unique is not None else None,
+                 'unique_lower_bound': config.max_unique+1 if capped else unique,
+                 'sample_values': state.examples, 'memory_size': state.memory,
+                 'is_constant': unique == 1, 'all_missing': rows > 0 and state.missing == rows,
+                 'possible_id': rows > 0 and unique == rows,
+                 'cardinality': 'high' if capped else ('low' if unique < 20 else 'medium' if unique < 1000 else 'high'),
+                 'common_values': common,
+                 'methods': {'missing': 'exact', 'unique': 'unavailable_above_cap' if capped else 'exact',
+                             'frequencies': sample_meta if capped else {'method': 'exact', 'rows_examined': rows},
+                             'memory_size': 'sum of batch value memory; not process peak memory'}}
+            if role == 'numeric':
+                stats = state.moments.result()
+                p.update(stats)
+                p.update(num_infinity=state.infinity, num_zeros=state.zeros, num_neg=state.negative)
+                for name, count in [('infinity', state.infinity), ('zeros', state.zeros), ('neg', state.negative)]:
+                    p['pct_'+name] = count/rows if rows else 0.0
+                p['range'] = stats['max']-stats['min'] if stats['count'] else None
+                p['coefficient_of_variation'] = stats['std']/stats['mean'] if stats['std'] is not None and stats['mean'] else None
+                p['monotonicity'] = ('undefined' if not stats['count'] else 'constant' if state.increasing and state.decreasing
+                                    else 'increasing' if state.increasing else 'decreasing' if state.decreasing else 'none')
+                values = finite_values(sample)
+                q = np.quantile(values, [.05, .25, .5, .75, .95]) if len(values) else [None]*5
+                p.update(zip(['5thp', 'Q1', 'median', 'Q3', '95thp'], q))
+                p['IQR'] = q[3]-q[1] if len(values) else None
+                p['MAD'] = float(np.median(np.abs(values-q[2]))) if len(values) else None
+                if len(values):
+                    counts_h, edges = np.histogram(values, bins=config.histogram_bins)
+                    outliers = (values < q[1]-1.5*p['IQR']) | (values > q[3]+1.5*p['IQR'])
+                    p['outliers'] = {'count': int(outliers.sum()), 'fraction': float(outliers.mean()),
+                                     'rule': '1.5 IQR on analyzed finite rows', **sample_meta}
+                    p['histogram'] = {'counts': counts_h.tolist(), 'edges': edges.tolist(), **sample_meta}
+                else:
+                    p['outliers'] = {'count': 0, 'fraction': None, **sample_meta}
+                    p['histogram'] = {'counts': [], 'edges': [], **sample_meta}
+                p['methods'].update(moments='exact finite values, float64; variance ddof=1; adjusted skew; excess kurtosis',
+                                    quantiles={**sample_meta, 'finite_rows': len(values)},
+                                    monotonicity='exact over finite values in input order')
+            elif role in {'text', 'category'}:
+                if role == 'category' and inferred_counts is not None:
+                    lengths = Moments()
+                    for value, count in counts.items():
+                        block = Moments()
+                        block.update([len(str(value))])
+                        block.n = count
+                        lengths.merge(block)
+                    p['length_stats'] = lengths.result()
+                else:
+                    p['length_stats'] = state.lengths.result()
+                p['length_stats']['definition'] = 'characters per nonmissing row after str conversion'
+                p['counts'] = dict(counts.most_common(config.top_k))
+                p['percentages'] = {v: c/denominator for v, c in p['counts'].items()} if denominator else {}
+                p['top'] = common[0][0] if common else None
+                if role == 'text':
+                    words = Counter()
+                    for value in present:
+                        words.update(str(value).lower().split())
+                    total_words = sum(words.values())
+                    p['top words'] = dict(words.most_common(config.top_k))
+                    p['top words percentages'] = {w: c/total_words for w, c in p['top words'].items()} if total_words else {}
+                    p['methods']['words'] = sample_meta
             else:
-                col_profile["cardinality"] = "high"
-
-            if col_profile["dtype"] in numeric:
-                if col_profile["cardinality"] == "low":
-                    col_profile["type"] = "category"
-                else:
-                    col_profile["type"] = "numeric"
-            if col_profile["dtype"] in text:
-                if col_profile["cardinality"] == "low":
-                    col_profile["type"] = "category"
-                else:
-                    col_profile["type"] = "text"
-
-
-
-            if col_profile["type"] == "numeric":
-
-                # Basic stats
-                col_profile["mean"] = float(series.mean())
-                col_profile["std"] = float(series.std())
-                col_profile["min"] = float(series.min())
-                col_profile["max"] = float(series.max())
-                col_profile["skew"] = float(series.skew())
-                col_profile["kurtosis"] = float(series.kurtosis())
-
-                # Infinity counts
-                num_inf = series.isin([float("inf"), float("-inf")]).sum()
-                col_profile["num_infinity"] = int(num_inf)
-                col_profile["pct_infinity"] = float(num_inf / num_rows)
-
-                # Zero counts
-                num_zero = (series == 0).sum()
-                col_profile["num_zeros"] = int(num_zero)
-                col_profile["pct_zeros"] = float(num_zero / num_rows)
-
-                # Negative counts
-                num_neg = (series < 0).sum()
-                col_profile["num_neg"] = int(num_neg)
-                col_profile["pct_neg"] = float(num_neg / num_rows)
-
-                # Uniform distribution check
-                q = np.quantile(series.dropna(), np.linspace(0, 1, 11))
-                diffs = np.diff(q)
-                cv = diffs.std() / diffs.mean()
-
-                is_uniform = cv < 0.15
-
-                col_profile["uniform_dist"] = is_uniform
-
-
-                # Quantiles
-                perc5 = series.quantile(0.05)
-                Q1 = series.quantile(0.25)
-                median = series.quantile(0.5)
-                Q3 = series.quantile(0.75)
-                perc95 = series.quantile(0.95)
-
-                col_profile["5thp"] = float(perc5)
-                col_profile["Q1"] = float(Q1)
-                col_profile["median"] = float(median)
-                col_profile["Q3"] = float(Q3)
-                col_profile["95thp"] = float(perc95)
-                col_profile["range"] = float(series.max() - series.min())
-                col_profile["IQR"] = float(Q3 - Q1)
-
-                # Variance
-                col_profile["variance"] = float(series.var())
-
-                # Coefficient of variation (std / mean)
-                col_profile["coefficient_of_variation"] = (
-                    float(series.std() / series.mean()) if series.mean() != 0 else None
-                )
-
-                # MAD (Median Absolute Deviation)
-                col_profile["MAD"] = float((series - median).abs().median())
-
-                # Sum
-                col_profile["sum"] = float(series.sum())
-
-                # Monotonicity
-                if series.is_monotonic_increasing:
-                    col_profile["monotonicity"] = "increasing"
-                elif series.is_monotonic_decreasing:
-                    col_profile["monotonicity"] = "decreasing"
-                else:
-                    col_profile["monotonicity"] = "none"
-
-                # Top 10 most common values
-                value_counts = series.value_counts(dropna=False).head(10)
-                total = len(series)
-
-                top_values = []
-                for val, count in value_counts.items():
-                    top_values.append([
-                        None if pd.isna(val) else float(val),
-                        int(count),
-                        float(count / total)
-                        ])
-                    
-
-                col_profile["common_values"] = top_values
-
-                # Top 10 maximum values
-                max_values_counts = (
-                    series.value_counts(dropna=False)
-                          .sort_index(ascending=False)
-                          .head(10)
-                )
-                total = len(series)
-
-                max_values = []
-                for val, count in max_values_counts.items():
-                    max_values.append([
-                        None if pd.isna(val) else float(val),
-                        int(count),
-                        float(count / total)
-                    ])
-
-                col_profile["max_values"] = max_values
-
-
-                # Top 10 minimum values
-                min_values_counts = (
-                    series.value_counts(dropna=False)
-                          .sort_index(ascending=True)
-                          .head(10)
-                )
-
-                min_values = []
-                for val, count in min_values_counts.items():
-                    min_values.append([
-                        None if pd.isna(val) else float(val),
-                        int(count),
-                        float(count / total)
-                    ])
-
-                col_profile["min_values"] = min_values
-
-
-            if col_profile["type"] == "category":
-
-                col_profile["top"] = series.mode().iloc[0] if not series.mode().empty else None
-                col_profile["counts"] = series.value_counts().to_dict()
-                col_profile["percentages"] = series.value_counts(normalize=True).to_dict()
-
-                cats = series.unique()              # or series.cat.categories if categorical dtype
-             
-                # Convert all category names to strings
-                cat_strs = [str(c) for c in cats]
-
-                # Length of each category name
-                lengths = [len(s) for s in cat_strs]
-
-                # Total characters across all category names
-                total_chars = sum(lengths)
-
-                # Unique characters across all category names
-                unique_chars = set("".join(cat_strs))
-                total_unique_chars = len(unique_chars)
-
-                stats = {
-                    "min": int(np.min(lengths)),
-                    "max": int(np.max(lengths)),
-                    "mean": float(np.mean(lengths)),
-                    "median": float(np.median(lengths)),
-                    "total chars": int(total_chars),
-                    "unique chars": int(total_unique_chars)
-                }
-                col_profile["cat_stats"] = stats
-
-
-            if col_profile["type"] == "text":
-                texts = series.unique()              # or series.cat.categories if categorical dtype
-                text_strs = [str(c) for c in texts]
-                lengths = [len(c) for c in text_strs]
-                total_chars = sum(lengths)
-                unique_chars = set("".join(text_strs))
-
-
-                stats = {
-                    "min": int(np.min(lengths)),
-                    "max": int(np.max(lengths)),
-                    "mean": float(np.mean(lengths)),
-                    "median": float(np.median(lengths)),
-                    "total chars": int(total_chars),
-                    "unique chars": int(len(unique_chars))
-
-                }
-
-                col_profile["text_stats"] = stats
-                # 1. Convert Series to a single string or iterate row-by-row
-                texts = series.dropna().astype(str)
-
-                # 2. Tokenize (simple whitespace split; replace with regex if needed)
-                words = []
-                for t in texts:
-                    words.extend(t.lower().split())
-
-                # 3. Count word frequencies
-                counts = Counter(words)
-
-                # 4. Compute percentages
-                total = sum(counts.values())
-                percentages = {w: counts[w] / total for w in counts}
-
-                # 5. Extract top 10
-                top10_counts = dict(counts.most_common(10))
-                top10_percentages = {w: percentages[w] for w in top10_counts}
-                col_profile["top words"] = top10_counts
-                col_profile["top words percentages"] = top10_percentages
-                
-            
-            columns[col] = col_profile
-
-            
-
-        return SectionResult(
-            name=self.name,
-            data=columns
-        )
-register_component(ColumnProfiler())
+                p['min'], p['max'] = state.minimum, state.maximum
+            output[col] = p
+        return SectionResult(self.name, output, {'rows_examined': rows, 'nonfinite_policy':
+            'missing and +/-infinity excluded from numeric moments and associations; counted separately'})

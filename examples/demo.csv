@@ -1,0 +1,13 @@
+customer_id,plan,age,spend,renewed
+1,Basic,22,12,yes
+2,Plus,35,25,no
+3,Basic,,15,yes
+4,Premium,48,60,yes
+5,Plus,31,29,no
+6,Basic,27,12,yes
+7,Premium,55,80,yes
+8,Plus,42,35,no
+9,Basic,24,18,yes
+10,Plus,38,30,yes
+11,Premium,60,90,no
+12,Basic,29,14,yes

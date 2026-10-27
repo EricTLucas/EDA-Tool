@@ -1,26 +1,15 @@
-from .loader import load_dataset
-from .profiler import Profiler
-from .visualizer import visualize_dataset
-from .html_report import build_html_report
-import webbrowser
-import os
+"""Compatibility entry point. The implementation lives in workflows.eda."""
+import warnings
+from .workflows import run_eda, EDARun, ProgressEvent
 
-def analyze(path_or_object, output_dir=r"figures", open_html=True):
-    df = load_dataset(path_or_object)
-    print("Dataset Loading Complete")
-    profile = Profiler(df)
-    results = profile.run()
-    print("Dataset Profiling Complete")
-    visualize_dataset(df, results, output_dir)
-    print("Dataset Visuals Complete")
-    html = build_html_report(results, output_dir, path_or_object)
-    print("HTML Report Generated")
 
-    with open("eda_report.html", "w", encoding="utf-8") as f:
-        f.write(html)
-    
-    if open_html:
-        url = "file://" + os.path.abspath("eda_report.html")
-        webbrowser.open(url)
+def analyze(path_or_object, output_dir='reports', open_html=False, **kwargs):
+    """Deprecated old wrapper; now returns EDARun, not (df, profiler)."""
+    warnings.warn('analyze() now returns EDARun; prefer run_eda(). No browser is opened.',
+                  DeprecationWarning, stacklevel=2)
+    kwargs.setdefault('generate_summary',True)
+    kwargs.setdefault('export_html',True)
+    return run_eda(path_or_object,output_dir=output_dir,**kwargs)
 
-    return df, profile
+
+__all__ = ['run_eda','EDARun','ProgressEvent','analyze']

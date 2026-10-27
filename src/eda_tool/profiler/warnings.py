@@ -1,74 +1,29 @@
-from .base import ProfilerComponent, SectionResult, register_component
+"""Evidence-based data quality findings; no distribution claims from heuristics."""
+from .base import ProfilerComponent, SectionResult
+
 
 class WarningsComponent(ProfilerComponent):
-    name = "warnings"
+    name = 'warnings'
+    def update(self, batch):
+        pass
 
-    def compute(self, df, profile):
+    def finalize(self, results):
         warnings = {}
-
-        corrs = profile["correlations"].data
-
-        cols = profile["columns"].data
-
-        for col in cols:
-            warnings[col] =  getWarnings(cols[col], cols[col]["type"], col) 
-
-            row = corrs.loc[col]
-
-            for other_col, value in row.items():
-
-                if abs(value) > 0.75 and other_col != col:
-                    warnings[col][f"high_correlation_{other_col}"] = f"{col} is highly overall correlated with {other_col}"
-
-        return SectionResult(
-            name=self.name,
-            data=warnings
-        )
-
-
-def getWarnings(col_profile, type: str, col) -> dict:
-    """
-    Generate warnings based on the column profile and type.
-    Possible warnings include: 
-    - Missing: Any missing values in the data
-    - Uniform Distribution: 
-    - Unique: All values are unique (e.g., ID columns)
-    - High Correlation: High correlation with another column
-    
-    Numeric Warnings:
-    - Zeros: Inclusion of zeros in the data
-    - Negatives: Inclusion of negative values in the data
-    - Infinities: Inclusion of infinite values in the data
-    """
-    col_warnings = {}
-
-    if col_profile["num_missing"] > 0:
-        number_missing = col_profile["num_missing"]
-        pct_missing = col_profile["pct_missing"]
-        col_warnings["missing"] = f"{col} has {number_missing} missing values ({pct_missing:.2%})"
-
-    if col_profile["pct_unique"] == 1.0: 
-        col_warnings["unique"] = f"{col} has unique values (possible ID column)"
-
-    if type == "numeric":
-        if col_profile["num_zeros"] > 0:
-            col_warnings["zeros"] = f"{col} has {col_profile["num_zeros"]} zeros"
-
-        if col_profile["num_neg"] > 0:
-            col_warnings["negatives"] = f"{col} has {col_profile["num_neg"]} negative values"
-
-        if col_profile["num_infinity"] > 0:
-            col_warnings["infinity"] = f"{col} has {col_profile["num_infinity"]} infinite values"
-
-        if col_profile["uniform_dist"] == True:
-            col_warnings["uniform_dist"] = f"{col} is uniformly distributed"
-
-        return col_warnings
-    elif type == "category":
-        return col_warnings
-    elif type == "text":
-
-        return col_warnings
-
-
-register_component(WarningsComponent())
+        for col, profile in results['columns'].data.items():
+            messages = {}
+            if profile['num_missing']:
+                messages['missing'] = f"{profile['num_missing']} missing values ({profile['pct_missing']:.2%})"
+            if profile['all_missing']:
+                messages['all_missing'] = 'All values are missing'
+            if profile['is_constant']:
+                messages['constant'] = 'One distinct nonmissing value'
+            if profile['possible_id']:
+                messages['unique'] = 'Every row has a distinct value; inspect whether this is an identifier'
+            if profile.get('num_infinity', 0):
+                messages['infinity'] = 'Infinite values excluded from numeric statistics'
+            if profile['num_unique'] is None:
+                messages['cardinality_capped'] = 'Exact distinct tracking exceeded its limit; frequencies use the sample'
+            if len(self.context.dtypes[col]) > 1:
+                messages['dtype_drift'] = 'Storage dtype varied between batches; inspect loader dtype overrides'
+            warnings[col] = messages
+        return SectionResult(self.name, warnings, {'zeros_and_negatives': 'reported in column statistics; not automatically errors'})

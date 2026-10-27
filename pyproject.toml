@@ -1,21 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "eda_tool"
-version = "0.1.0"
-description = "A lightweight EDA pipeline with HTML report generation"
+name = "etml-eda"
+version = "1.0.1"
+description = "Standalone batch EDA, Orchid visualizations, AI interpretation and offline HTML reports"
 readme = "README.md"
-requires-python = ">=3.9"
-dependencies = [
-    "pandas",
-    "numpy",
-    "matplotlib",
-    "scipy", 
-    "seaborn",
-    "wordcloud",
-    "pyarrow"
-]
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "pandas>=2.0", "matplotlib>=3.9", "wordcloud>=1.9", "pyarrow>=14"]
+
+[project.optional-dependencies]
+ui = ["fastapi>=0.115", "uvicorn>=0.30", "python-multipart>=0.0.18"]
+library = ["scikit-learn>=1.4"]
+huggingface = ["datasets>=4.0"]
+kaggle = ["kaggle>=1.6.17"]
+excel = ["openpyxl>=3.1", "xlrd>=2.0", "pyxlsb>=1.0", "odfpy>=1.4"]
+test = ["httpx>=0.27"]
 
 [project.scripts]
 eda = "eda_tool.cli:main"
+etml-eda = "eda_tool.cli:main"
 
-[tool.pytest.ini_options]
-pythonpath = ["src"]
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["eda_tool*"]
+
+[tool.setuptools.package-data]
+"eda_tool" = ["web_static/*.html", "web_static/*.css", "web_static/*.js"]
